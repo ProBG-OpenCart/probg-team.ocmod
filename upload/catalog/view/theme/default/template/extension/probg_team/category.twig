@@ -1,0 +1,57 @@
+{{ header }}
+{{ structured_data|raw }}
+<div id="probg-team-category" class="container">
+  <ul class="breadcrumb">
+    {% for breadcrumb in breadcrumbs %}
+      <li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+    {% endfor %}
+  </ul>
+  <div class="row">
+    {{ column_left }}
+    {% if column_left and column_right %}
+      {% set class = 'col-sm-6' %}
+    {% elseif column_left or column_right %}
+      {% set class = 'col-sm-9' %}
+    {% else %}
+      {% set class = 'col-sm-12' %}
+    {% endif %}
+    <div id="content" class="{{ class }}">
+      {{ content_top }}
+      <h1>{{ heading_title }}</h1>
+      {% if description %}
+        <div class="probg-team-category-description">{{ description|raw }}</div>
+      {% endif %}
+
+      {% if members %}
+        <div class="row probg-team-grid">
+          {% for member in members %}
+            <div class="product-layout col-lg-4 col-md-4 col-sm-6 col-xs-12">
+              <article class="product-thumb transition probg-team-card">
+                <div class="image"><a href="{{ member.href }}"><img src="{{ member.thumb }}" alt="{{ member.name }}" title="{{ member.name }}" class="img-responsive" loading="lazy" /></a></div>
+                <div class="caption">
+                  <h2 class="h4"><a href="{{ member.href }}">{{ member.name }}</a></h2>
+                  {% if show_city and member.city %}
+                    <p class="text-muted"><i class="fa fa-map-marker" aria-hidden="true"></i> {{ text_city }}: {{ member.city }}</p>
+                  {% endif %}
+                  {% if member.short_description %}
+                    <div class="probg-team-member-short">{{ member.short_description|raw }}</div>
+                  {% endif %}
+                  <p><a href="{{ member.href }}" class="btn btn-primary">{{ text_read_more }}</a></p>
+                </div>
+              </article>
+            </div>
+          {% endfor %}
+        </div>
+        <div class="row">
+          <div class="col-sm-6 text-left">{{ pagination }}</div>
+          <div class="col-sm-6 text-right">{{ results }}</div>
+        </div>
+      {% else %}
+        <p>{{ text_no_members }}</p>
+      {% endif %}
+      {{ content_bottom }}
+    </div>
+    {{ column_right }}
+  </div>
+</div>
+{{ footer }}

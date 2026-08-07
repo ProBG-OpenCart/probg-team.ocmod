@@ -1,0 +1,24 @@
+<?php
+$_['heading_title'] = 'ProBG Team — menu';
+$_['text_extension'] = 'Extensions';
+$_['text_success'] = 'Success: The Team menu has been saved!';
+$_['text_edit'] = 'Edit Team menu';
+$_['text_home'] = 'Home';
+$_['text_enabled'] = 'Enabled';
+$_['text_disabled'] = 'Disabled';
+$_['text_all_categories'] = 'All categories';
+$_['entry_name'] = 'Menu name';
+$_['entry_title'] = 'Menu title';
+$_['entry_category'] = 'Category';
+$_['entry_limit'] = 'Member limit';
+$_['entry_status'] = 'Status';
+$_['help_title'] = 'Leave empty to use the selected category title or the main section title.';
+$_['help_category'] = 'Category selection is optional. All active categories are used when “All categories” is selected.';
+$_['help_limit'] = 'Maximum number of team members shown in the menu.';
+$_['button_save'] = 'Save';
+$_['button_cancel'] = 'Cancel';
+$_['button_global_settings'] = 'Global settings';
+$_['error_permission'] = 'Warning: You do not have permission to modify the Team menu!';
+$_['error_name'] = 'Menu name must be between 3 and 64 characters!';
+$_['error_limit'] = 'Limit must be between 1 and 1000!';
+$_['error_category'] = 'The selected category does not exist!';

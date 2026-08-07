@@ -1,0 +1,71 @@
+{{ header }}{{ column_left }}
+<div id="content">
+  <div class="page-header"><div class="container-fluid">
+    <div class="pull-right">
+      {% if view %}<a href="{{ view }}" target="_blank" data-toggle="tooltip" title="{{ button_view }}" class="btn btn-info"><i class="fa fa-eye"></i></a>{% endif %}
+      <button type="submit" form="form-member" data-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary"><i class="fa fa-save"></i></button>
+      <a href="{{ cancel }}" data-toggle="tooltip" title="{{ button_cancel }}" class="btn btn-default"><i class="fa fa-reply"></i></a>
+    </div>
+    <h1>{{ heading_title }}</h1>
+    <ul class="breadcrumb">{% for breadcrumb in breadcrumbs %}<li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>{% endfor %}</ul>
+  </div></div>
+  <div class="container-fluid">
+    {% if error_warning %}<div class="alert alert-danger alert-dismissible"><i class="fa fa-exclamation-circle"></i> {{ error_warning }}<button type="button" class="close" data-dismiss="alert">&times;</button></div>{% endif %}
+    <div class="panel panel-default"><div class="panel-heading"><h3 class="panel-title"><i class="fa fa-pencil"></i> {{ text_form }}</h3></div><div class="panel-body">
+      <form action="{{ action }}" method="post" id="form-member" class="form-horizontal">
+        <ul class="nav nav-tabs">
+          <li class="active"><a href="#tab-general" data-toggle="tab"><i class="fa fa-language"></i> {{ tab_general }}</a></li>
+          <li><a href="#tab-seo" data-toggle="tab"><i class="fa fa-link"></i> {{ tab_seo }}</a></li>
+          <li><a href="#tab-images" data-toggle="tab"><i class="fa fa-image"></i> {{ tab_images }}</a></li>
+          <li><a href="#tab-data" data-toggle="tab"><i class="fa fa-cog"></i> {{ tab_data }}</a></li>
+          <li><a href="#tab-stores" data-toggle="tab"><i class="fa fa-shopping-cart"></i> {{ tab_stores }}</a></li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="tab-general">
+            <ul class="nav nav-tabs language-tabs">{% for language in languages %}<li><a href="#general-language{{ language.language_id }}" data-toggle="tab"><img src="language/{{ language.code }}/{{ language.code }}.png" title="{{ language.name }}" /> {{ language.name }}</a></li>{% endfor %}</ul>
+            <div class="tab-content">
+              {% for language in languages %}<div class="tab-pane" id="general-language{{ language.language_id }}">
+                <div class="form-group required"><label class="col-sm-2 control-label">{{ entry_name }}</label><div class="col-sm-10"><input type="text" name="member_description[{{ language.language_id }}][name]" value="{{ member_description[language.language_id].name|default('') }}" class="form-control" />{% if error_name[language.language_id] %}<div class="text-danger">{{ error_name[language.language_id] }}</div>{% endif %}</div></div>
+                <div class="form-group"><label class="col-sm-2 control-label">{{ entry_short_description }}</label><div class="col-sm-10"><textarea name="member_description[{{ language.language_id }}][short_description]" data-toggle="summernote" data-lang="{{ summernote }}" class="form-control">{{ member_description[language.language_id].short_description|default('') }}</textarea></div></div>
+                <div class="form-group"><label class="col-sm-2 control-label">{{ entry_description }}</label><div class="col-sm-10"><textarea name="member_description[{{ language.language_id }}][description]" data-toggle="summernote" data-lang="{{ summernote }}" class="form-control">{{ member_description[language.language_id].description|default('') }}</textarea></div></div>
+                <div class="form-group"><label class="col-sm-2 control-label">{{ entry_telephone }}</label><div class="col-sm-10"><input type="text" name="member_description[{{ language.language_id }}][telephone]" value="{{ member_description[language.language_id].telephone|default('') }}" class="form-control" /></div></div>
+                <div class="form-group"><label class="col-sm-2 control-label">{{ entry_city }}</label><div class="col-sm-10"><input type="text" name="member_description[{{ language.language_id }}][city]" value="{{ member_description[language.language_id].city|default('') }}" class="form-control" /></div></div>
+                <div class="form-group"><label class="col-sm-2 control-label">{{ entry_working_hours }}</label><div class="col-sm-10"><textarea name="member_description[{{ language.language_id }}][working_hours]" rows="5" class="form-control" placeholder="{{ help_working_hours }}">{{ member_description[language.language_id].working_hours|default('') }}</textarea></div></div>
+                {% for field,label in {'website':entry_website,'facebook':entry_facebook,'instagram':entry_instagram,'youtube':entry_youtube,'linkedin':entry_linkedin} %}<div class="form-group"><label class="col-sm-2 control-label">{{ label }}</label><div class="col-sm-10"><input type="text" name="member_description[{{ language.language_id }}][{{ field }}]" value="{{ attribute(member_description[language.language_id]|default({}),field)|default('') }}" class="form-control" /></div></div>{% endfor %}
+                <div class="form-group"><label class="col-sm-2 control-label">{{ entry_meta_title }}</label><div class="col-sm-10"><input type="text" name="member_description[{{ language.language_id }}][meta_title]" value="{{ member_description[language.language_id].meta_title|default('') }}" class="form-control" /></div></div>
+                <div class="form-group"><label class="col-sm-2 control-label">{{ entry_meta_description }}</label><div class="col-sm-10"><textarea name="member_description[{{ language.language_id }}][meta_description]" rows="3" class="form-control">{{ member_description[language.language_id].meta_description|default('') }}</textarea></div></div>
+                <div class="form-group"><label class="col-sm-2 control-label">{{ entry_meta_keyword }}</label><div class="col-sm-10"><textarea name="member_description[{{ language.language_id }}][meta_keyword]" rows="2" class="form-control">{{ member_description[language.language_id].meta_keyword|default('') }}</textarea></div></div>
+              </div>{% endfor %}
+            </div>
+          </div>
+          <div class="tab-pane" id="tab-seo">
+            <ul class="nav nav-tabs store-tabs">{% for store in stores %}<li><a href="#seo-store{{ store.store_id }}" data-toggle="tab"><i class="fa fa-shopping-cart"></i> {{ store.name }}</a></li>{% endfor %}</ul>
+            <div class="tab-content">{% for store in stores %}<div class="tab-pane" id="seo-store{{ store.store_id }}">{% for language in languages %}<div class="form-group"><label class="col-sm-2 control-label"><img src="language/{{ language.code }}/{{ language.code }}.png" title="{{ language.name }}" /> {{ language.name }}</label><div class="col-sm-10"><input type="text" name="member_seo_url[{{ store.store_id }}][{{ language.language_id }}]" value="{{ member_seo_url[store.store_id][language.language_id]|default('') }}" class="form-control" placeholder="{{ entry_seo_url }}" />{% if error_seo_url[store.store_id][language.language_id] %}<div class="text-danger">{{ error_seo_url[store.store_id][language.language_id] }}</div>{% endif %}<p class="help-block">{{ help_seo_url }}</p></div></div>{% endfor %}</div>{% endfor %}</div>
+          </div>
+          <div class="tab-pane" id="tab-images">
+            <div class="form-group"><label class="col-sm-2 control-label">{{ entry_image }}</label><div class="col-sm-10"><a href="" id="thumb-image" data-toggle="image" class="img-thumbnail"><img src="{{ thumb }}" data-placeholder="{{ placeholder }}" /></a><input type="hidden" name="image" value="{{ image }}" id="input-image" /></div></div>
+            <div class="form-group"><label class="col-sm-2 control-label">{{ entry_additional_images }}</label><div class="col-sm-10"><table id="images" class="table table-striped table-bordered"><thead><tr><td>{{ entry_image }}</td><td>{{ entry_sort_order }}</td><td></td></tr></thead><tbody>{% set image_row=0 %}{% for item in member_images %}<tr id="image-row{{ image_row }}"><td><a href="" id="thumb-image{{ image_row }}" data-toggle="image" class="img-thumbnail"><img src="{{ item.thumb }}" data-placeholder="{{ placeholder }}" /></a><input type="hidden" name="member_image[{{ image_row }}][image]" value="{{ item.image }}" id="input-image{{ image_row }}" /></td><td><input type="number" name="member_image[{{ image_row }}][sort_order]" value="{{ item.sort_order }}" class="form-control" /></td><td><button type="button" onclick="$('#image-row{{ image_row }}').remove();" class="btn btn-danger"><i class="fa fa-minus-circle"></i></button></td></tr>{% set image_row=image_row+1 %}{% endfor %}</tbody><tfoot><tr><td colspan="2"></td><td><button type="button" onclick="addImage();" class="btn btn-primary"><i class="fa fa-plus-circle"></i></button></td></tr></tfoot></table></div></div>
+          </div>
+          <div class="tab-pane" id="tab-data">
+            <div class="form-group required"><label class="col-sm-2 control-label">{{ entry_category }}</label><div class="col-sm-10"><select name="team_category_id" class="form-control"><option value="0">--</option>{% for category in categories %}<option value="{{ category.team_category_id }}" {% if category.team_category_id == team_category_id %}selected{% endif %}>{{ category.name }}</option>{% endfor %}</select>{% if error_category %}<div class="text-danger">{{ error_category }}</div>{% endif %}</div></div>
+            <div class="form-group"><label class="col-sm-2 control-label">{{ entry_sort_order }}</label><div class="col-sm-10"><input type="number" name="sort_order" value="{{ sort_order }}" class="form-control" /></div></div>
+            <div class="form-group"><label class="col-sm-2 control-label">{{ entry_status }}</label><div class="col-sm-10"><select name="status" class="form-control"><option value="1" {% if status %}selected{% endif %}>{{ text_enabled }}</option><option value="0" {% if not status %}selected{% endif %}>{{ text_disabled }}</option></select></div></div>
+          </div>
+          <div class="tab-pane" id="tab-stores">
+            <div class="form-group required"><label class="col-sm-2 control-label">{{ entry_store }}</label><div class="col-sm-10"><div class="well well-sm" style="height:150px;overflow:auto;">{% for store in stores %}<div class="checkbox"><label><input type="checkbox" name="member_store[]" value="{{ store.store_id }}" {% if store.store_id in member_store %}checked{% endif %} /> {{ store.name }}</label></div>{% endfor %}</div>{% if error_store %}<div class="text-danger">{{ error_store }}</div>{% endif %}<p class="help-block">{{ help_store }}</p></div></div>
+          </div>
+        </div>
+      </form>
+    </div></div>
+  </div>
+</div>
+<script type="text/javascript">
+$('.language-tabs').each(function(){ $(this).find('a:first').tab('show'); });
+$('.store-tabs a:first').tab('show');
+var image_row={{ image_row }};
+function addImage(){
+  var html='<tr id="image-row'+image_row+'"><td><a href="" id="thumb-image'+image_row+'" data-toggle="image" class="img-thumbnail"><img src="{{ placeholder }}" data-placeholder="{{ placeholder }}" /></a><input type="hidden" name="member_image['+image_row+'][image]" id="input-image'+image_row+'" /></td><td><input type="number" name="member_image['+image_row+'][sort_order]" value="0" class="form-control" /></td><td><button type="button" onclick="$(\'#image-row'+image_row+'\').remove();" class="btn btn-danger"><i class="fa fa-minus-circle"></i></button></td></tr>';
+  $('#images tbody').append(html); image_row++;
+}
+</script>
+{{ footer }}

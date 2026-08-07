@@ -1,0 +1,82 @@
+{{ header }}
+{{ structured_data|raw }}
+<div id="probg-team-member" class="container">
+  <ul class="breadcrumb">
+    {% for breadcrumb in breadcrumbs %}
+      <li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+    {% endfor %}
+  </ul>
+  <div class="row">
+    {{ column_left }}
+    {% if column_left and column_right %}
+      {% set class = 'col-sm-6' %}
+    {% elseif column_left or column_right %}
+      {% set class = 'col-sm-9' %}
+    {% else %}
+      {% set class = 'col-sm-12' %}
+    {% endif %}
+    <div id="content" class="{{ class }}">
+      {{ content_top }}
+      <h1>{{ heading_title }}</h1>
+      <div class="row">
+        <div class="col-sm-5 probg-team-member-image">
+          {% if popup %}
+            <a href="{{ popup }}" target="_blank" rel="noopener" class="thumbnail"><img src="{{ thumb }}" alt="{{ heading_title }}" title="{{ heading_title }}" class="img-responsive" /></a>
+          {% else %}
+            <div class="thumbnail"><img src="{{ thumb }}" alt="{{ heading_title }}" title="{{ heading_title }}" class="img-responsive" /></div>
+          {% endif %}
+        </div>
+        <div class="col-sm-7">
+          {% if short_description %}
+            <div class="probg-team-member-short lead">{{ short_description|raw }}</div>
+          {% endif %}
+          <ul class="list-unstyled probg-team-contact-list">
+            <li><strong>{{ text_category }}:</strong> <a href="{{ category_href }}">{{ category_name }}</a></li>
+            {% if show_telephone and telephone %}
+              <li><strong>{{ text_telephone }}:</strong> <a href="tel:{{ telephone_href }}">{{ telephone }}</a></li>
+            {% endif %}
+            {% if show_city and city %}
+              <li><strong>{{ text_city }}:</strong> {{ city }}</li>
+            {% endif %}
+            {% if show_working_hours and working_hours %}
+              <li class="probg-team-working-hours"><strong>{{ text_working_hours }}:</strong><br />{{ working_hours|raw }}</li>
+            {% endif %}
+            {% if show_website and website %}
+              <li><strong>{{ text_website }}:</strong> <a href="{{ website }}" target="_blank" rel="noopener noreferrer">{{ website }}</a></li>
+            {% endif %}
+          </ul>
+
+          {% if show_social and (facebook or instagram or youtube or linkedin) %}
+            <h2 class="h3">{{ text_social }}</h2>
+            <p class="probg-team-social">
+              {% if facebook %}<a class="btn btn-default" href="{{ facebook }}" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="fa fa-facebook" aria-hidden="true"></i> Facebook</a>{% endif %}
+              {% if instagram %}<a class="btn btn-default" href="{{ instagram }}" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i class="fa fa-instagram" aria-hidden="true"></i> Instagram</a>{% endif %}
+              {% if youtube %}<a class="btn btn-default" href="{{ youtube }}" target="_blank" rel="noopener noreferrer" aria-label="YouTube"><i class="fa fa-youtube-play" aria-hidden="true"></i> YouTube</a>{% endif %}
+              {% if linkedin %}<a class="btn btn-default" href="{{ linkedin }}" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><i class="fa fa-linkedin" aria-hidden="true"></i> LinkedIn</a>{% endif %}
+            </p>
+          {% endif %}
+        </div>
+      </div>
+
+      {% if description %}
+        <hr />
+        <div class="probg-team-member-description">{{ description|raw }}</div>
+      {% endif %}
+
+      {% if images %}
+        <hr />
+        <h2 class="h3">{{ text_gallery }}</h2>
+        <div class="row probg-team-gallery">
+          {% for image in images %}
+            <div class="col-lg-3 col-md-3 col-sm-4 col-xs-6">
+              <a href="{{ image.popup }}" target="_blank" rel="noopener" class="thumbnail"><img src="{{ image.thumb }}" alt="{{ heading_title }}" class="img-responsive" loading="lazy" /></a>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+      {{ content_bottom }}
+    </div>
+    {{ column_right }}
+  </div>
+</div>
+{{ footer }}

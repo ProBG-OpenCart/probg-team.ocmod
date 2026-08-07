@@ -1,0 +1,12 @@
+<div class="panel panel-default probg-team-menu">
+  <div class="panel-heading"><strong>{{ heading_title }}</strong></div>
+  <div class="list-group">
+    {% for member in members %}
+      <a href="{{ member.href }}" class="list-group-item{% if member.active %} active{% endif %}">
+        <span class="probg-team-menu-name">{{ member.name }}</span>
+        {% if show_category and member.category_name %}<small class="probg-team-menu-category">{{ member.category_name }}</small>{% endif %}
+      </a>
+    {% endfor %}
+  </div>
+  <div class="panel-footer"><a href="{{ view_all_href }}">{{ text_view_all }}</a></div>
+</div>

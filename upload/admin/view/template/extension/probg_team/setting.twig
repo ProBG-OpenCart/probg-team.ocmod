@@ -1,0 +1,139 @@
+{{ header }}{{ column_left }}
+<div id="content">
+  <div class="page-header">
+    <div class="container-fluid">
+      <div class="pull-right">
+        <a href="{{ section_url }}" target="_blank" data-toggle="tooltip" title="{{ button_view_section }}" class="btn btn-info"><i class="fa fa-external-link"></i></a>
+        <a href="{{ clear_cache }}" data-toggle="tooltip" title="{{ button_clear_cache }}" class="btn btn-warning"><i class="fa fa-refresh"></i></a>
+        <button type="submit" form="form-probg-team" data-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary"><i class="fa fa-save"></i></button>
+        <a href="{{ cancel }}" data-toggle="tooltip" title="{{ button_cancel }}" class="btn btn-default"><i class="fa fa-reply"></i></a>
+      </div>
+      <h1>{{ heading_title }}</h1>
+      <ul class="breadcrumb">
+        {% for breadcrumb in breadcrumbs %}<li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>{% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="container-fluid">
+    {% if error_warning %}<div class="alert alert-danger alert-dismissible"><i class="fa fa-exclamation-circle"></i> {{ error_warning }}<button type="button" class="close" data-dismiss="alert">&times;</button></div>{% endif %}
+    {% if success %}<div class="alert alert-success alert-dismissible"><i class="fa fa-check-circle"></i> {{ success }}<button type="button" class="close" data-dismiss="alert">&times;</button></div>{% endif %}
+    <div class="panel panel-default">
+      <div class="panel-heading"><h3 class="panel-title"><i class="fa fa-pencil"></i> {{ text_edit }}</h3></div>
+      <div class="panel-body">
+        <form action="{{ action }}" method="post" enctype="multipart/form-data" id="form-probg-team" class="form-horizontal">
+          <ul class="nav nav-tabs">
+            <li class="active"><a href="#tab-content" data-toggle="tab"><i class="fa fa-language"></i> {{ text_content }}</a></li>
+            <li><a href="#tab-settings" data-toggle="tab"><i class="fa fa-cog"></i> {{ text_settings }}</a></li>
+            <li><a href="#tab-images" data-toggle="tab"><i class="fa fa-image"></i> {{ text_images }}</a></li>
+            <li><a href="#tab-diagnostics" data-toggle="tab"><i class="fa fa-stethoscope"></i> {{ text_diagnostics }}</a></li>
+          </ul>
+
+          <div class="tab-content">
+            <div class="tab-pane active" id="tab-content">
+              <ul class="nav nav-tabs" id="store-tabs">
+                {% for store in stores %}
+                  <li><a href="#store{{ store.store_id }}" data-toggle="tab"><i class="fa fa-shopping-cart"></i> {{ store.name }}</a></li>
+                {% endfor %}
+              </ul>
+              <div class="tab-content">
+                {% for store in stores %}
+                  <div class="tab-pane" id="store{{ store.store_id }}">
+                    <ul class="nav nav-tabs language-tabs">
+                      {% for language in languages %}
+                        <li><a href="#store{{ store.store_id }}-language{{ language.language_id }}" data-toggle="tab"><img src="language/{{ language.code }}/{{ language.code }}.png" title="{{ language.name }}" /> {{ language.name }}</a></li>
+                      {% endfor %}
+                    </ul>
+                    {% if store.store_id %}<div class="alert alert-info"><i class="fa fa-info-circle"></i> {{ text_store_inherit }}</div>{% endif %}
+                    <div class="tab-content">
+                      {% for language in languages %}
+                        <div class="tab-pane" id="store{{ store.store_id }}-language{{ language.language_id }}">
+                          <div class="form-group required">
+                            <label class="col-sm-2 control-label">{{ entry_title }}</label>
+                            <div class="col-sm-10">
+                              <input type="text" name="module_probg_team_description[{{ store.store_id }}][{{ language.language_id }}][title]" value="{{ module_probg_team_description[store.store_id][language.language_id].title|default('') }}" class="form-control" />
+                              {% if error_title[store.store_id][language.language_id] %}<div class="text-danger">{{ error_title[store.store_id][language.language_id] }}</div>{% endif %}
+                            </div>
+                          </div>
+                          <div class="form-group">
+                            <label class="col-sm-2 control-label">{{ entry_description }}</label>
+                            <div class="col-sm-10"><textarea name="module_probg_team_description[{{ store.store_id }}][{{ language.language_id }}][description]" data-toggle="summernote" data-lang="{{ summernote }}" class="form-control">{{ module_probg_team_description[store.store_id][language.language_id].description|default('') }}</textarea></div>
+                          </div>
+                          <div class="form-group">
+                            <label class="col-sm-2 control-label">{{ entry_meta_title }}</label>
+                            <div class="col-sm-10"><input type="text" name="module_probg_team_description[{{ store.store_id }}][{{ language.language_id }}][meta_title]" value="{{ module_probg_team_description[store.store_id][language.language_id].meta_title|default('') }}" class="form-control" /></div>
+                          </div>
+                          <div class="form-group">
+                            <label class="col-sm-2 control-label">{{ entry_meta_description }}</label>
+                            <div class="col-sm-10"><textarea name="module_probg_team_description[{{ store.store_id }}][{{ language.language_id }}][meta_description]" rows="3" class="form-control">{{ module_probg_team_description[store.store_id][language.language_id].meta_description|default('') }}</textarea></div>
+                          </div>
+                          <div class="form-group">
+                            <label class="col-sm-2 control-label">{{ entry_meta_keyword }}</label>
+                            <div class="col-sm-10"><textarea name="module_probg_team_description[{{ store.store_id }}][{{ language.language_id }}][meta_keyword]" rows="2" class="form-control">{{ module_probg_team_description[store.store_id][language.language_id].meta_keyword|default('') }}</textarea></div>
+                          </div>
+                          <div class="form-group">
+                            <label class="col-sm-2 control-label"><span data-toggle="tooltip" title="{{ help_seo_url }}">{{ entry_seo_url }}</span></label>
+                            <div class="col-sm-10">
+                              <input type="text" name="module_probg_team_seo_url[{{ store.store_id }}][{{ language.language_id }}]" value="{{ module_probg_team_seo_url[store.store_id][language.language_id]|default('') }}" class="form-control" />
+                              {% if error_seo_url[store.store_id][language.language_id] %}<div class="text-danger">{{ error_seo_url[store.store_id][language.language_id] }}</div>{% endif %}
+                            </div>
+                          </div>
+                        </div>
+                      {% endfor %}
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+
+            <div class="tab-pane" id="tab-settings">
+              <div class="form-group"><label class="col-sm-2 control-label">{{ entry_status }}</label><div class="col-sm-10"><select name="module_probg_team_status" class="form-control"><option value="1" {% if module_probg_team_status %}selected{% endif %}>{{ text_enabled }}</option><option value="0" {% if not module_probg_team_status %}selected{% endif %}>{{ text_disabled }}</option></select></div></div>
+              <div class="form-group"><label class="col-sm-2 control-label">{{ entry_limit }}</label><div class="col-sm-10"><input type="number" min="1" name="module_probg_team_limit" value="{{ module_probg_team_limit }}" class="form-control" /></div></div>
+              {% for field,label in {'module_probg_team_show_empty_categories':entry_show_empty_categories,'module_probg_team_show_telephone':entry_show_telephone,'module_probg_team_show_city':entry_show_city,'module_probg_team_show_working_hours':entry_show_working_hours,'module_probg_team_show_website':entry_show_website,'module_probg_team_show_social':entry_show_social,'module_probg_team_open_graph_status':entry_open_graph_status,'module_probg_team_schema_status':entry_schema_status,'module_probg_team_cache_status':entry_cache_status,'module_probg_team_search_status':entry_search_status,'module_probg_team_sitemap_status':entry_sitemap_status} %}
+                <div class="form-group"><label class="col-sm-2 control-label">{{ label }}</label><div class="col-sm-10"><select name="{{ field }}" class="form-control"><option value="1" {% if attribute(_context, field) %}selected{% endif %}>{{ text_yes }}</option><option value="0" {% if not attribute(_context, field) %}selected{% endif %}>{{ text_no }}</option></select></div></div>
+              {% endfor %}
+              <div class="form-group"><label class="col-sm-2 control-label"><span data-toggle="tooltip" title="{{ help_search_limit }}">{{ entry_search_limit }}</span></label><div class="col-sm-10"><input type="number" min="1" name="module_probg_team_search_limit" value="{{ module_probg_team_search_limit }}" class="form-control" /></div></div>
+              <div class="form-group"><label class="col-sm-2 control-label"><span data-toggle="tooltip" title="{{ help_sitemap_url }}">{{ entry_sitemap_url }}</span></label><div class="col-sm-10"><div class="input-group"><input type="text" value="{{ sitemap_url }}" readonly class="form-control" /><span class="input-group-btn"><a href="{{ sitemap_url }}" target="_blank" class="btn btn-default"><i class="fa fa-external-link"></i></a></span></div><p class="help-block">{{ text_google_sitemap_integration }} <code>{{ google_sitemap_url }}</code></p></div></div>
+            </div>
+
+            <div class="tab-pane" id="tab-images">
+              <div class="form-group"><label class="col-sm-2 control-label">{{ entry_list_size }}</label><div class="col-sm-5"><input type="number" min="1" name="module_probg_team_list_width" value="{{ module_probg_team_list_width }}" class="form-control" /></div><div class="col-sm-5"><input type="number" min="1" name="module_probg_team_list_height" value="{{ module_probg_team_list_height }}" class="form-control" /></div></div>
+              <div class="form-group"><label class="col-sm-2 control-label">{{ entry_member_size }}</label><div class="col-sm-5"><input type="number" min="1" name="module_probg_team_member_width" value="{{ module_probg_team_member_width }}" class="form-control" /></div><div class="col-sm-5"><input type="number" min="1" name="module_probg_team_member_height" value="{{ module_probg_team_member_height }}" class="form-control" /></div></div>
+              <div class="form-group"><label class="col-sm-2 control-label">{{ entry_gallery_size }}</label><div class="col-sm-5"><input type="number" min="1" name="module_probg_team_gallery_width" value="{{ module_probg_team_gallery_width }}" class="form-control" /></div><div class="col-sm-5"><input type="number" min="1" name="module_probg_team_gallery_height" value="{{ module_probg_team_gallery_height }}" class="form-control" /></div></div>
+            </div>
+            <div class="tab-pane" id="tab-diagnostics">
+              <div class="alert {% if diagnostics.database_ok and diagnostics.working_hours and diagnostics.modification_enabled and diagnostics.orphan_members == 0 and diagnostics.invalid_member_stores == 0 %}alert-success{% else %}alert-warning{% endif %}">
+                <i class="fa {% if diagnostics.database_ok and diagnostics.working_hours and diagnostics.modification_enabled and diagnostics.orphan_members == 0 and diagnostics.invalid_member_stores == 0 %}fa-check-circle{% else %}fa-exclamation-triangle{% endif %}"></i>
+                {{ text_diagnostics_summary }}
+              </div>
+              <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                  <tbody>
+                    <tr><td>{{ text_module_version }}</td><td><strong>{{ module_version }}</strong></td></tr>
+                    <tr><td>{{ text_database_schema }}</td><td><span class="label {% if diagnostics.database_ok %}label-success{% else %}label-danger{% endif %}">{% if diagnostics.database_ok %}{{ text_ok }}{% else %}{{ text_problem }}{% endif %}</span></td></tr>
+                    <tr><td>{{ text_working_hours_column }}</td><td><span class="label {% if diagnostics.working_hours %}label-success{% else %}label-danger{% endif %}">{% if diagnostics.working_hours %}{{ text_ok }}{% else %}{{ text_problem }}{% endif %}</span></td></tr>
+                    <tr><td>{{ text_ocmod_status }}</td><td><span class="label {% if diagnostics.modification_enabled %}label-success{% else %}label-danger{% endif %}">{% if diagnostics.modification_enabled %}{{ text_enabled }}{% elseif diagnostics.modification_installed %}{{ text_disabled }}{% else %}{{ text_not_installed }}{% endif %}</span></td></tr>
+                    <tr><td>{{ text_categories_count }}</td><td>{{ diagnostics.category_total }}</td></tr>
+                    <tr><td>{{ text_members_count }}</td><td>{{ diagnostics.member_total }}</td></tr>
+                    <tr><td>{{ text_orphan_members }}</td><td><span class="label {% if diagnostics.orphan_members == 0 %}label-success{% else %}label-danger{% endif %}">{{ diagnostics.orphan_members }}</span></td></tr>
+                    <tr><td>{{ text_invalid_member_stores }}</td><td><span class="label {% if diagnostics.invalid_member_stores == 0 %}label-success{% else %}label-danger{% endif %}">{{ diagnostics.invalid_member_stores }}</span></td></tr>
+                    <tr><td>{{ text_section_seo }}</td><td>{{ diagnostics.section_seo_total }} / {{ diagnostics.expected_section_seo }}</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              {% if not diagnostics.database_ok %}
+                <div class="alert alert-danger"><strong>{{ text_missing_tables }}</strong><ul>{% for table, exists in diagnostics.tables %}{% if not exists %}<li><code>{{ table }}</code></li>{% endif %}{% endfor %}</ul></div>
+              {% endif %}
+              <p class="help-block">{{ help_repair }}</p>
+              <a href="{{ repair }}" onclick="return confirm('{{ text_repair_confirm }}');" class="btn btn-warning"><i class="fa fa-wrench"></i> {{ button_repair }}</a>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+$('#store-tabs a:first').tab('show');
+$('.language-tabs').each(function() { $(this).find('a:first').tab('show'); });
+</script>
+{{ footer }}

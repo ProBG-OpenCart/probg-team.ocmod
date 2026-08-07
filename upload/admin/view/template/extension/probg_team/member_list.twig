@@ -1,0 +1,77 @@
+{{ header }}{{ column_left }}
+<div id="content">
+  <div class="page-header">
+    <div class="container-fluid">
+      <div class="pull-right">
+        <a href="{{ add }}" data-toggle="tooltip" title="{{ button_add }}" class="btn btn-primary"><i class="fa fa-plus"></i></a>
+        <button type="button" data-toggle="tooltip" title="{{ button_delete }}" class="btn btn-danger" onclick="confirm('{{ text_confirm }}') ? $('#form-member').submit() : false;"><i class="fa fa-trash-o"></i></button>
+      </div>
+      <h1>{{ heading_title }}</h1>
+      <ul class="breadcrumb">{% for breadcrumb in breadcrumbs %}<li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>{% endfor %}</ul>
+    </div>
+  </div>
+  <div class="container-fluid">
+    {% if error_warning %}<div class="alert alert-danger alert-dismissible"><i class="fa fa-exclamation-circle"></i> {{ error_warning }}<button type="button" class="close" data-dismiss="alert">&times;</button></div>{% endif %}
+    {% if success %}<div class="alert alert-success alert-dismissible"><i class="fa fa-check-circle"></i> {{ success }}<button type="button" class="close" data-dismiss="alert">&times;</button></div>{% endif %}
+    <div class="panel panel-default">
+      <div class="panel-heading"><h3 class="panel-title"><i class="fa fa-list"></i> {{ text_list }}</h3></div>
+      <div class="panel-body">
+        <div class="well">
+          <div class="row">
+            <div class="col-sm-2"><input type="number" min="1" name="filter_member_id" value="{{ filter_member_id }}" placeholder="{{ entry_id }}" class="form-control" /></div>
+            <div class="col-sm-3"><input type="text" name="filter_name" value="{{ filter_name }}" placeholder="{{ entry_name }}" class="form-control" /></div>
+            <div class="col-sm-3"><select name="filter_category_id" class="form-control"><option value="">{{ entry_category }}</option>{% for category in categories %}<option value="{{ category.team_category_id }}" {% if category.team_category_id == filter_category_id %}selected{% endif %}>{{ category.name }}</option>{% endfor %}</select></div>
+            <div class="col-sm-2"><input type="text" name="filter_city" value="{{ filter_city }}" placeholder="{{ entry_city }}" class="form-control" /></div>
+            <div class="col-sm-2"><select name="filter_status" class="form-control"><option value="">{{ entry_status }}</option><option value="1" {% if filter_status == '1' %}selected{% endif %}>{{ text_enabled }}</option><option value="0" {% if filter_status == '0' %}selected{% endif %}>{{ text_disabled }}</option></select></div>
+          </div>
+          <div class="row" style="margin-top:10px"><div class="col-sm-12 text-right"><a href="{{ clear }}" class="btn btn-default"><i class="fa fa-eraser"></i> {{ button_clear }}</a> <button type="button" id="button-filter" class="btn btn-primary"><i class="fa fa-filter"></i> {{ button_filter }}</button></div></div>
+        </div>
+        <form action="{{ delete }}" method="post" id="form-member">
+          <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+              <thead><tr>
+                <td style="width:1px"><input type="checkbox" onclick="$(`input[name*='selected']`).prop('checked',this.checked)" /></td>
+                <td class="text-right"><a href="{{ sort_id }}">{{ column_id }}</a></td>
+                <td>{{ column_image }}</td>
+                <td><a href="{{ sort_name }}">{{ column_name }}</a></td>
+                <td><a href="{{ sort_category }}">{{ column_category }}</a></td>
+                <td><a href="{{ sort_city }}">{{ column_city }}</a></td>
+                <td class="text-right"><a href="{{ sort_sort_order }}">{{ column_sort_order }}</a></td>
+                <td><a href="{{ sort_status }}">{{ column_status }}</a></td>
+                <td><a href="{{ sort_date_modified }}">{{ column_date_modified }}</a></td>
+                <td class="text-right">{{ column_action }}</td>
+              </tr></thead>
+              <tbody>{% if members %}{% for member in members %}<tr>
+                <td><input type="checkbox" name="selected[]" value="{{ member.team_member_id }}" {% if member.team_member_id in selected %}checked{% endif %} /></td>
+                <td class="text-right">{{ member.team_member_id }}</td>
+                <td><img src="{{ member.thumb }}" alt="{{ member.name }}" class="img-thumbnail" /></td>
+                <td>{{ member.name }}</td>
+                <td>{{ member.category }}</td>
+                <td>{{ member.city }}</td>
+                <td class="text-right">{{ member.sort_order }}</td>
+                <td>{{ member.status }}</td>
+                <td>{{ member.date_modified }}</td>
+                <td class="text-right"><a href="{{ member.view }}" target="_blank" data-toggle="tooltip" title="{{ button_view }}" class="btn btn-info"><i class="fa fa-eye"></i></a> <a href="{{ member.edit }}" data-toggle="tooltip" title="{{ button_edit }}" class="btn btn-primary"><i class="fa fa-pencil"></i></a></td>
+              </tr>{% endfor %}{% else %}<tr><td colspan="10" class="text-center">{{ text_no_results }}</td></tr>{% endif %}</tbody>
+            </table>
+          </div>
+        </form>
+        <div class="row"><div class="col-sm-6 text-left">{{ pagination }}</div><div class="col-sm-6 text-right">{{ results }}</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+function filterTeamMembers() {
+  var url = 'index.php?route=extension/probg_team/member&user_token={{ user_token }}';
+  var fields = ['filter_member_id', 'filter_name', 'filter_category_id', 'filter_city', 'filter_status'];
+  $.each(fields, function(index, field) {
+    var value = $('[name="' + field + '"]').val();
+    if (value !== '') { url += '&' + field + '=' + encodeURIComponent(value); }
+  });
+  location = url;
+}
+$('#button-filter').on('click', filterTeamMembers);
+$('.well input').on('keydown', function(e) { if (e.keyCode === 13) { filterTeamMembers(); } });
+</script>
+{{ footer }}
