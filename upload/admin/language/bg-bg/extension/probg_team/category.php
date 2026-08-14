@@ -12,3 +12,6 @@ $_['tab_general']='Съдържание'; $_['tab_seo']='SEO URL'; $_['tab_data'
 $_['text_confirm']='Сигурни ли сте?';
 // v0.7.0
 $_['tab_stores']='Магазини'; $_['entry_store']='Показване в магазини'; $_['help_store']='Категорията ще бъде видима само в избраните магазини.'; $_['error_store']='Изберете поне един магазин!';
+
+// v0.9.1 admin navigation
+$_['tab_settings']='Настройки'; $_['tab_categories']='Категории'; $_['tab_members']='Членове'; $_['text_all']='Всички';

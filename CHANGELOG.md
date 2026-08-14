@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.9.1
+
+- Aligned the Team administration structure with ProBG Blog.
+- Changed the main **ProBG Team** module entry to open global Team settings.
+- Moved member-card Layout instances to the separate **ProBG Team — members** module code.
+- Added a safe one-time migration from `probg_team.<module_id>` to `probg_team_members.<module_id>` while preserving module IDs and Layout positions.
+- Reordered the Team administration menu to **Members**, **Categories**, **Settings**.
+- Removed Layout helper modules from the Team sidebar; they remain available under **Extensions > Extensions > Modules**, matching Blog.
+- Added shared **Settings / Categories / Members** navigation tabs to the Team administration pages through OCMOD.
+- Added category and member dashboard tiles to Team settings.
+- Added Bulgarian and English labels for the unified administration navigation.
+- Kept the legacy catalog `probg_team` Layout controller for backward compatibility until the migration runs.
+
 ## 0.9.0
 
 - Added a separate **ProBG Team — menu** OpenCart Layout module.

@@ -12,3 +12,6 @@ $_['tab_general']='Content'; $_['tab_seo']='SEO URL'; $_['tab_data']='Data'; $_[
 $_['text_confirm']='Are you sure?';
 // v0.7.0
 $_['tab_stores']='Stores'; $_['entry_store']='Show in stores'; $_['help_store']='The category is visible only in the selected stores.'; $_['error_store']='Select at least one store!';
+
+// v0.9.1 admin navigation
+$_['tab_settings']='Settings'; $_['tab_categories']='Categories'; $_['tab_members']='Members'; $_['text_all']='All';

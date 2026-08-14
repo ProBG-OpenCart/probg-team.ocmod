@@ -1,6 +1,6 @@
 # ProBG Team for OpenCart 3
 
-Version: 0.9.0
+Version: 0.9.1
 
 Multilingual OpenCart 3 extension for a team section, team categories, team-member profiles, configurable card blocks and compact Team menus for Layout positions.
 
@@ -8,13 +8,15 @@ Multilingual OpenCart 3 extension for a team section, team categories, team-memb
 
 Designed for OpenCart 3.0.2.x and 3.0.3.x. The package does not replace core files. SEO, search, sitemap, administration-menu and metadata integrations are applied through OCMOD.
 
-Version 0.9.0 adds a separate category-aware Team menu module and remains a release candidate prepared for real-store testing. Static, migration and simulated model tests are included in the release process, but the package still requires verification on the target OpenCart installation, theme, PHP version and cache driver before it is treated as production-ready 1.0.0.
+Version 0.9.1 aligns the Team administration with the ProBG Blog administration structure while preserving the v0.9.0 Team menu and all existing content. Static, migration and simulated model tests are included in the release process, but the package still requires verification on the target OpenCart installation, theme, PHP version and cache driver before it is treated as production-ready 1.0.0.
 
 ## Main features
 
 ### Administration
 
-- Dedicated **Team** menu with categories, members and global settings.
+- Dedicated **Team** menu with **Members**, **Categories** and **Settings**, matching the ProBG Blog administration structure.
+- Shared Settings / Categories / Members navigation tabs across Team administration pages.
+- Settings dashboard tiles with live category and member totals.
 - Multilingual section title, HTML description, metadata and SEO URL.
 - Multilingual category content and metadata.
 - Multilingual member content, contact details, working hours, social profiles and metadata.
@@ -53,7 +55,7 @@ Version 0.9.0 adds a separate category-aware Team menu module and remains a rele
 
 ### Layout module instances
 
-Real OpenCart module instances can be assigned through **Design > Layouts**. Every block can configure:
+The main **ProBG Team** module is the global Settings entry, matching ProBG Blog. Member-card Layout instances are managed by the separate **ProBG Team — members** module and can be assigned through **Design > Layouts**. Every block can configure:
 
 - internal block name;
 - multilingual public title;
@@ -153,10 +155,10 @@ It does not delete category or member content and does not automatically delete 
 
 ## Installation
 
-1. Upload `probg-team-v0.9.0.ocmod.zip` through **Extensions > Installer**.
+1. Upload `probg-team-v0.9.1.ocmod.zip` through **Extensions > Installer**.
 2. Refresh modifications through **Extensions > Modifications**.
-3. Install **ProBG Team** through **Extensions > Extensions > Modules**.
-4. Install **ProBG Team — menu** from the same Modules list when compact Team navigation is needed.
+3. Install **ProBG Team** through **Extensions > Extensions > Modules**. This is the global Team settings entry.
+4. Install or configure **ProBG Team — members** for member-card Layout blocks and **ProBG Team — menu** for compact navigation.
 5. Grant access and modify permissions if required.
 6. Open **Team > Settings** and configure the default store and active languages.
 7. Open **Diagnostics** and verify that all checks are successful.
@@ -175,6 +177,17 @@ It does not delete category or member content and does not automatically delete 
 
 Existing content, store assignments, SEO URLs, settings, images and card Layout module instances are preserved. The new Team menu instances are stored separately under the `probg_team_menu` module code. Do not uninstall the previous version before uploading v0.9.0.
 
+
+## Upgrade from v0.9.0 to v0.9.1
+
+1. Upload v0.9.1 without uninstalling v0.9.0.
+2. Refresh **Extensions > Modifications**.
+3. Open **ProBG Team** from **Extensions > Extensions > Modules** or **Team > Settings** once.
+4. Existing card-block module records with code `probg_team` are migrated to `probg_team_members` while their `module_id` values and Layout assignments are retained.
+5. **ProBG Team — menu** remains a separate Layout module.
+
+Do not uninstall v0.9.0 before the upgrade, because uninstalling intentionally removes Team data.
+
 ## Theme overrides
 
 Default templates are installed under:
@@ -183,9 +196,11 @@ Default templates are installed under:
 
 and:
 
-`catalog/view/theme/default/template/extension/module/probg_team.twig`
+`catalog/view/theme/default/template/extension/module/probg_team_members.twig`
 
 `catalog/view/theme/default/template/extension/module/probg_team_menu.twig`
+
+The legacy `probg_team.twig` template remains in the package for backward compatibility with v0.9.0 before the one-time module-code migration runs.
 
 A custom theme can override them under the equivalent path inside its own theme directory. OCMOD search-page and header integrations require the custom theme to retain the standard OpenCart Twig insertion points or to provide equivalent manual integration.
 

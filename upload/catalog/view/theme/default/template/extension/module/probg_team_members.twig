@@ -1,0 +1,19 @@
+<div class="probg-team-module">
+  <h3>{{ heading_title }}</h3>
+  <div class="row probg-team-grid">
+    {% for member in members %}
+      <div class="product-layout {{ column_class }}">
+        <article class="product-thumb transition probg-team-card">
+          <div class="image"><a href="{{ member.href }}"><img src="{{ member.thumb }}" alt="{{ member.name }}" title="{{ member.name }}" class="img-responsive" loading="lazy" /></a></div>
+          <div class="caption">
+            <h4><a href="{{ member.href }}">{{ member.name }}</a></h4>
+            {% if show_category and member.category_name %}<p class="text-muted">{{ member.category_name }}</p>{% endif %}
+            {% if show_city and member.city %}<p><i class="fa fa-map-marker" aria-hidden="true"></i> {{ member.city }}</p>{% endif %}
+            {% if show_description and member.description %}<p>{{ member.description }}</p>{% endif %}
+          </div>
+        </article>
+      </div>
+    {% endfor %}
+  </div>
+  <p class="text-right"><a href="{{ section_href }}" class="btn btn-primary">{{ text_read_more }}</a></p>
+</div>

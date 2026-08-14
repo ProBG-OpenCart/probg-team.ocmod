@@ -50,7 +50,7 @@ $_['help_sitemap_url'] = 'The URL contains the section, active categories and ac
 $_['text_google_sitemap_integration'] = 'Team URLs are also added to the standard Google Sitemap:';
 
 // v0.6.0
-$_['heading_title_block'] = 'ProBG Team — block';
+$_['heading_title_block'] = 'ProBG Team — members';
 $_['text_edit_block'] = 'Edit Team block';
 $_['text_success_block'] = 'Success: The Team block has been saved!';
 $_['text_cache_cleared'] = 'Success: The Team cache namespace has been refreshed!';
@@ -96,3 +96,10 @@ $_['text_repair_success'] = 'The module structure was checked and safe repairs w
 $_['text_repair_confirm'] = 'Run the module structure check and repair?';
 $_['help_repair'] = 'Repair creates missing tables and columns, restores missing store assignments and removes invalid member-store relations. Content is not deleted.';
 $_['button_repair'] = 'Check and repair';
+
+// v0.9.1 admin structure
+$_['text_tab_settings'] = 'Settings';
+$_['text_tab_categories'] = 'Categories';
+$_['text_tab_members'] = 'Members';
+$_['button_categories'] = 'Manage categories';
+$_['button_members'] = 'Manage members';
