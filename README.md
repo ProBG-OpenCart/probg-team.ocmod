@@ -1,6 +1,6 @@
 # ProBG Team for OpenCart 3
 
-Version: 0.9.1
+Version: 1.0.0-beta
 
 Multilingual OpenCart 3 extension for a team section, team categories, team-member profiles, configurable card blocks and compact Team menus for Layout positions.
 
@@ -8,7 +8,7 @@ Multilingual OpenCart 3 extension for a team section, team categories, team-memb
 
 Designed for OpenCart 3.0.2.x and 3.0.3.x. The package does not replace core files. SEO, search, sitemap, administration-menu and metadata integrations are applied through OCMOD.
 
-Version 0.9.1 aligns the Team administration with the ProBG Blog administration structure while preserving the v0.9.0 Team menu and all existing content. Static, migration and simulated model tests are included in the release process, but the package still requires verification on the target OpenCart installation, theme, PHP version and cache driver before it is treated as production-ready 1.0.0.
+Version 1.0.0 Beta is the first beta milestone of the module. It includes the Blog-aligned Team administration, multi-store visibility, SEO hierarchy, Open Graph and Schema.org metadata, caching, search and sitemap integration, working hours, card Layout blocks and the compact Team menu. The beta still requires final runtime verification on target OpenCart installations, themes, PHP versions and cache drivers before a stable 1.0.0 release.
 
 ## Main features
 
@@ -155,7 +155,7 @@ It does not delete category or member content and does not automatically delete 
 
 ## Installation
 
-1. Upload `probg-team-v0.9.1.ocmod.zip` through **Extensions > Installer**.
+1. Upload `probg-team-v1.0.0-beta.ocmod.zip` through **Extensions > Installer**.
 2. Refresh modifications through **Extensions > Modifications**.
 3. Install **ProBG Team** through **Extensions > Extensions > Modules**. This is the global Team settings entry.
 4. Install or configure **ProBG Team — members** for member-card Layout blocks and **ProBG Team — menu** for compact navigation.
@@ -177,6 +177,14 @@ It does not delete category or member content and does not automatically delete 
 
 Existing content, store assignments, SEO URLs, settings, images and card Layout module instances are preserved. The new Team menu instances are stored separately under the `probg_team_menu` module code. Do not uninstall the previous version before uploading v0.9.0.
 
+## Upgrade from v0.9.1 to v1.0.0 Beta
+
+1. Upload `probg-team-v1.0.0-beta.ocmod.zip` without uninstalling v0.9.1.
+2. Refresh **Extensions > Modifications**.
+3. Open **Team > Settings** once and run Diagnostics.
+4. Verify the Team section, one category, one member profile and any Layout modules used by the store.
+
+There are no database-schema changes between v0.9.1 and v1.0.0 Beta. Existing content, SEO URLs, store assignments, images and Layout-module instances are preserved.
 
 ## Upgrade from v0.9.0 to v0.9.1
 
