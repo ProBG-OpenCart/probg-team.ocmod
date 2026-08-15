@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.0-beta — 2026-08-15
+
+- Published the first 1.0.0 Beta release of ProBG Team.
+- Promoted the validated v0.9.1 codebase to the 1.0.0 beta milestone without database-schema changes.
+- Kept the Blog-aligned administration structure with Settings, Categories and Members navigation.
+- Kept the separate ProBG Team — members and ProBG Team — menu Layout modules.
+- Preserved the automatic v0.9.0 Layout-module migration and all existing Team content, SEO URLs and store assignments.
+- Marked the package as a beta/pre-release pending final runtime verification on target OpenCart 3 installations and themes.
+
 ## 0.9.1
 
 - Aligned the Team administration structure with ProBG Blog.
