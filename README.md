@@ -215,3 +215,15 @@ A custom theme can override them under the equivalent path inside its own theme 
 ## Uninstallation warning
 
 Uninstalling the main module removes its custom database tables, content, SEO records, card block instances and saved Team menu instances. Image files selected through the OpenCart Image Manager are not physically deleted.
+
+## Support development
+
+If this module is useful to you, you can support its development through Revolut:
+
+[![Buy me a coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-Revolut-0075EB?style=for-the-badge&logo=revolut&logoColor=white)](https://revolut.me/vtotev)
+
+## Подкрепете разработката
+
+Ако модулът ви е полезен, можете да подкрепите неговата разработка чрез Revolut:
+
+[![Buy me a coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-Revolut-0075EB?style=for-the-badge&logo=revolut&logoColor=white)](https://revolut.me/vtotev)
