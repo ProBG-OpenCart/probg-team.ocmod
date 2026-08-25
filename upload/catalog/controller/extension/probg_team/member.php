@@ -7,6 +7,10 @@ class ControllerExtensionProbgTeamMember extends Controller {
         $this->load->model('extension/probg_team/team');
         $this->load->model('tool/image');
         $this->document->addStyle('catalog/view/javascript/probg_team/probg_team.css');
+        $this->document->addStyle('catalog/view/javascript/jquery/magnific/magnific-popup.css');
+        $this->document->addStyle('catalog/view/javascript/probg_team/probg_team_lightbox.css');
+        $this->document->addScript('catalog/view/javascript/jquery/magnific/jquery.magnific-popup.min.js');
+        $this->document->addScript('catalog/view/javascript/probg_team/probg_team_lightbox.js');
 
         if (!$this->config->get('module_probg_team_status')) {
             return $this->notFound();
@@ -62,9 +66,11 @@ class ControllerExtensionProbgTeamMember extends Controller {
         $gallery_width = max(1, (int)$this->config->get('module_probg_team_gallery_width'));
         $gallery_height = max(1, (int)$this->config->get('module_probg_team_gallery_height'));
 
-        if ($member_info['image'] && is_file(DIR_IMAGE . $member_info['image'])) {
-            $data['thumb'] = $this->model_tool_image->resize($member_info['image'], $member_width, $member_height);
-            $data['popup'] = $this->model_tool_image->resize($member_info['image'], 1200, 1200);
+        $member_image = $this->getSafeImagePath($member_info['image']);
+
+        if ($member_image) {
+            $data['thumb'] = $this->model_tool_image->resize($member_image, $member_width, $member_height);
+            $data['popup'] = $this->model_tool_image->resize($member_image, 1200, 1200);
         } else {
             $data['thumb'] = $this->model_tool_image->resize('placeholder.png', $member_width, $member_height);
             $data['popup'] = '';
@@ -72,10 +78,12 @@ class ControllerExtensionProbgTeamMember extends Controller {
 
         $data['images'] = array();
         foreach ($this->model_extension_probg_team_team->getMemberImages($team_member_id) as $image) {
-            if ($image['image'] && is_file(DIR_IMAGE . $image['image'])) {
+            $gallery_image = $this->getSafeImagePath($image['image']);
+
+            if ($gallery_image) {
                 $data['images'][] = array(
-                    'thumb' => $this->model_tool_image->resize($image['image'], $gallery_width, $gallery_height),
-                    'popup' => $this->model_tool_image->resize($image['image'], 1200, 1200)
+                    'thumb' => $this->model_tool_image->resize($gallery_image, $gallery_width, $gallery_height),
+                    'popup' => $this->model_tool_image->resize($gallery_image, 1200, 1200)
                 );
             }
         }
@@ -207,4 +215,24 @@ class ControllerExtensionProbgTeamMember extends Controller {
         $this->request->get['route'] = 'error/not_found';
         return $this->load->controller('error/not_found');
     }
+    private function getSafeImagePath($image) {
+        $image = ltrim(str_replace('\\', '/', trim((string)$image)), '/');
+
+        if ($image === '' || strpos($image, "\0") !== false || preg_match('#(^|/)\.\.(/|$)#', $image)) {
+            return '';
+        }
+
+        $root = realpath(DIR_IMAGE);
+        $path = realpath(DIR_IMAGE . $image);
+
+        if ($root === false || $path === false || !is_file($path)) {
+            return '';
+        }
+
+        $root = rtrim(str_replace('\\', '/', $root), '/') . '/';
+        $path = str_replace('\\', '/', $path);
+
+        return strpos($path, $root) === 0 ? $image : '';
+    }
+
 }

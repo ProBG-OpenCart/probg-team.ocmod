@@ -1,5 +1,7 @@
 <?php
 class ControllerExtensionModuleProbgTeam extends Controller {
+    private static $rendering_instances = array();
+
     public function index($setting = array()) {
         if (!$this->config->get('module_probg_team_status')) {
             return '';
@@ -11,6 +13,19 @@ class ControllerExtensionModuleProbgTeam extends Controller {
             return '';
         }
 
+        $guard_key = md5(serialize($setting));
+        if (isset(self::$rendering_instances[$guard_key])) {
+            return '';
+        }
+
+        self::$rendering_instances[$guard_key] = true;
+        $output = $this->renderInstance($setting);
+        unset(self::$rendering_instances[$guard_key]);
+
+        return $output;
+    }
+
+    private function renderInstance($setting) {
         if (isset($setting['probg_team_type']) && $setting['probg_team_type'] === 'menu') {
             return $this->menuModule($setting);
         }
@@ -19,9 +34,7 @@ class ControllerExtensionModuleProbgTeam extends Controller {
             return $this->membersModule($setting);
         }
 
-        // Since 1.0.0-beta.2 Layout output is rendered by explicit typed
-        // probg_team.<module_id> instances. A stale bare probg_team layout row
-        // must not render a duplicate fallback block after migration.
+        // Explicit typed instances are the only supported Layout output after migration.
         if ($this->config->get('module_probg_team_instances_migrated')) {
             return '';
         }
@@ -103,8 +116,9 @@ class ControllerExtensionModuleProbgTeam extends Controller {
         );
 
         foreach ($this->model_extension_probg_team_team->getMembers($filter_data) as $member) {
-            $thumb = ($member['image'] && is_file(DIR_IMAGE . $member['image']))
-                ? $this->model_tool_image->resize($member['image'], $width, $height)
+            $member_image = $this->getSafeImagePath($member['image']);
+            $thumb = $member_image
+                ? $this->model_tool_image->resize($member_image, $width, $height)
                 : $this->model_tool_image->resize('placeholder.png', $width, $height);
 
             $description = trim(strip_tags(html_entity_decode($member['short_description'], ENT_QUOTES, 'UTF-8')));
@@ -185,4 +199,24 @@ class ControllerExtensionModuleProbgTeam extends Controller {
 
         return $this->load->view('extension/module/probg_team_menu', $data);
     }
+    private function getSafeImagePath($image) {
+        $image = ltrim(str_replace('\\', '/', trim((string)$image)), '/');
+
+        if ($image === '' || strpos($image, "\0") !== false || preg_match('#(^|/)\.\.(/|$)#', $image)) {
+            return '';
+        }
+
+        $root = realpath(DIR_IMAGE);
+        $path = realpath(DIR_IMAGE . $image);
+
+        if ($root === false || $path === false || !is_file($path)) {
+            return '';
+        }
+
+        $root = rtrim(str_replace('\\', '/', $root), '/') . '/';
+        $path = str_replace('\\', '/', $path);
+
+        return strpos($path, $root) === 0 ? $image : '';
+    }
+
 }

@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.0.1 — 2026-08-25
+
+### fix — Български
+
+- Добавена е request-level защита срещу recursive повторно рендериране на един и същ Team Layout instance при нестандартни теми и Layout интеграции.
+- Storefront изображенията на членовете и галерията вече се валидират чрез реалния път в `DIR_IMAGE`, което блокира опасни legacy path стойности и файлове извън Image директорията.
+- Основното изображение и допълнителната галерия на профила вече използват вградения в OpenCart 3 Magnific Popup lightbox, без външен CDN.
+- Добавени са gallery navigation, keyboard navigation, preload и zoom indicator, като нормалните image links остават fallback при липса на JavaScript.
+- Версията е стабилизирана като `1.0.1`; database schema версията остава `1.0.0`, защото няма нова DB миграция.
+- Инсталационният пакет за release-а се публикува като `dist/probg-team-1.0.01.ocmod.zip`.
+
+### fix — English
+
+- Added a request-level guard against recursive rendering of the same Team Layout instance in non-standard themes and Layout integrations.
+- Storefront member and gallery images are now validated against their real path inside `DIR_IMAGE`, blocking unsafe legacy paths and files outside the image directory.
+- The member profile image and additional gallery now use OpenCart 3's bundled Magnific Popup lightbox with no external CDN.
+- Added gallery navigation, keyboard navigation, preload and a zoom indicator while preserving normal image links as the JavaScript fallback.
+- Stabilized the module version as `1.0.1`; the database schema version remains `1.0.0` because this release requires no new DB migration.
+- The release installation package is published as `dist/probg-team-1.0.01.ocmod.zip`.
+
 ## 1.0.0-beta.2 — 2026-08-25
 
 ### feat — Български
@@ -65,7 +85,7 @@
 ## 0.8.0
 
 - Added versioned, idempotent database upgrades with an internal `module_probg_team_schema_version` marker.
-- Added a Diagnostics tab for table, column, OCMOD integration, data-integrity and section-SEO checks.
+- Added a Diagnostics tab for table, column, OCMOD, data-integrity and section-SEO checks.
 - Added a safe **Check and repair** action for missing schema elements and invalid member-store relations.
 - Changed global-settings persistence so multilingual section descriptions and SEO URL arrays are no longer duplicated in the standard `setting` table.
 - Added recovery and cleanup for legacy duplicated description and SEO-array setting rows from v0.5.x–v0.7.x, preventing data loss when a normalized table is missing.
