@@ -1,0 +1,63 @@
+name: ProBG Team v1.0.1 apply
+
+on:
+  push:
+    branches:
+      - release/v1.0.1
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: release/v1.0.1
+          fetch-depth: 0
+
+      - name: Reconstruct and verify payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .team-release/part.* | tr -d '\n\r' | base64 -d > /tmp/team-v101-payload.tgz
+          echo "943a69a55e5e541f4f0c33f8b4d054c2ec88ed91820af1c9f6e5d30527686faf  /tmp/team-v101-payload.tgz" | sha256sum -c -
+          tar -xzf /tmp/team-v101-payload.tgz -C .
+
+      - name: Validate source
+        shell: bash
+        run: |
+          set -euo pipefail
+          find upload -type f -name '*.php' -print0 | xargs -0 -n1 php -l >/tmp/php-lint.log
+          python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+          ET.parse('install.xml')
+          print('install.xml OK')
+          PY
+          grep -q '<version>1.0.1</version>' install.xml
+          node --check upload/catalog/view/javascript/probg_team/probg_team_lightbox.js
+
+      - name: Rebuild dist
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f dist/*.ocmod.zip dist/SHA256SUMS
+          mkdir -p dist
+          zip -qr dist/probg-team-1.0.01.ocmod.zip install.xml upload
+          unzip -t dist/probg-team-1.0.01.ocmod.zip >/tmp/unzip-test.log
+          (cd dist && sha256sum probg-team-1.0.01.ocmod.zip > SHA256SUMS)
+          cat dist/SHA256SUMS
+
+      - name: Commit verified v1.0.1
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .team-release
+          rm -f .github/workflows/team-v101-apply.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'release: ProBG Team v1.0.1'
+          git push origin HEAD:release/v1.0.1
