@@ -11,6 +11,11 @@
   </div></div>
   <div class="container-fluid">
     {% if error_warning %}<div class="alert alert-danger alert-dismissible"><i class="fa fa-exclamation-circle"></i> {{ error_warning }}<button type="button" class="close" data-dismiss="alert">&times;</button></div>{% endif %}
+    <ul class="nav nav-tabs">
+      <li><a href="index.php?route=extension/module/probg_team&user_token={{ user_token }}">{{ tab_settings }}</a></li>
+      <li><a href="index.php?route=extension/probg_team/category&user_token={{ user_token }}">{{ tab_categories }}</a></li>
+      <li class="active"><a href="index.php?route=extension/probg_team/member&user_token={{ user_token }}">{{ tab_members }}</a></li>
+    </ul>
     <div class="panel panel-default"><div class="panel-heading"><h3 class="panel-title"><i class="fa fa-pencil"></i> {{ text_form }}</h3></div><div class="panel-body">
       <form action="{{ action }}" method="post" id="form-member" class="form-horizontal">
         <ul class="nav nav-tabs">
@@ -47,9 +52,11 @@
             <div class="form-group"><label class="col-sm-2 control-label">{{ entry_additional_images }}</label><div class="col-sm-10"><table id="images" class="table table-striped table-bordered"><thead><tr><td>{{ entry_image }}</td><td>{{ entry_sort_order }}</td><td></td></tr></thead><tbody>{% set image_row=0 %}{% for item in member_images %}<tr id="image-row{{ image_row }}"><td><a href="" id="thumb-image{{ image_row }}" data-toggle="image" class="img-thumbnail"><img src="{{ item.thumb }}" data-placeholder="{{ placeholder }}" /></a><input type="hidden" name="member_image[{{ image_row }}][image]" value="{{ item.image }}" id="input-image{{ image_row }}" /></td><td><input type="number" name="member_image[{{ image_row }}][sort_order]" value="{{ item.sort_order }}" class="form-control" /></td><td><button type="button" onclick="$('#image-row{{ image_row }}').remove();" class="btn btn-danger"><i class="fa fa-minus-circle"></i></button></td></tr>{% set image_row=image_row+1 %}{% endfor %}</tbody><tfoot><tr><td colspan="2"></td><td><button type="button" onclick="addImage();" class="btn btn-primary"><i class="fa fa-plus-circle"></i></button></td></tr></tfoot></table></div></div>
           </div>
           <div class="tab-pane" id="tab-data">
-            <div class="form-group required"><label class="col-sm-2 control-label">{{ entry_category }}</label><div class="col-sm-10"><select name="team_category_id" class="form-control"><option value="0">--</option>{% for category in categories %}<option value="{{ category.team_category_id }}" {% if category.team_category_id == team_category_id %}selected{% endif %}>{{ category.name }}</option>{% endfor %}</select>{% if error_category %}<div class="text-danger">{{ error_category }}</div>{% endif %}</div></div>
+            <div class="form-group required"><label class="col-sm-2 control-label">{{ entry_category }}</label><div class="col-sm-10"><select name="team_category_id" class="form-control"><option value="0">--</option>{% for category in categories %}<option value="{{ category.team_category_id }}" {% if category.team_category_id == team_category_id %}selected{% endif %}>{{ category.name }}</option>{% endfor %}</select>{% if error_category %}<div class="text-danger">{{ error_category }}</div>{% endif %}<p class="help-block">{{ help_category_layout }}</p></div></div>
             <div class="form-group"><label class="col-sm-2 control-label">{{ entry_sort_order }}</label><div class="col-sm-10"><input type="number" name="sort_order" value="{{ sort_order }}" class="form-control" /></div></div>
             <div class="form-group"><label class="col-sm-2 control-label">{{ entry_status }}</label><div class="col-sm-10"><select name="status" class="form-control"><option value="1" {% if status %}selected{% endif %}>{{ text_enabled }}</option><option value="0" {% if not status %}selected{% endif %}>{{ text_disabled }}</option></select></div></div>
+            <div class="form-group"><label class="col-sm-2 control-label">{{ entry_date_added }}</label><div class="col-sm-10"><p class="form-control-static">{{ date_added }}</p></div></div>
+            <div class="form-group"><label class="col-sm-2 control-label">{{ entry_date_modified }}</label><div class="col-sm-10"><p class="form-control-static">{{ date_modified }}</p></div></div>
           </div>
           <div class="tab-pane" id="tab-stores">
             <div class="form-group required"><label class="col-sm-2 control-label">{{ entry_store }}</label><div class="col-sm-10"><div class="well well-sm" style="height:150px;overflow:auto;">{% for store in stores %}<div class="checkbox"><label><input type="checkbox" name="member_store[]" value="{{ store.store_id }}" {% if store.store_id in member_store %}checked{% endif %} /> {{ store.name }}</label></div>{% endfor %}</div>{% if error_store %}<div class="text-danger">{{ error_store }}</div>{% endif %}<p class="help-block">{{ help_store }}</p></div></div>

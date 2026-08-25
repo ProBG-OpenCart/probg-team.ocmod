@@ -3,56 +3,249 @@
   <div class="page-header">
     <div class="container-fluid">
       <div class="pull-right">
-        <a href="{{ settings }}" data-toggle="tooltip" title="{{ button_global_settings }}" class="btn btn-info"><i class="fa fa-cog"></i></a>
-        <button type="submit" form="form-probg-team-block" data-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary"><i class="fa fa-save"></i></button>
+        <a href="{{ section_url }}" target="_blank" data-toggle="tooltip" title="{{ button_view_section }}" class="btn btn-info"><i class="fa fa-external-link"></i></a>
+        <a href="{{ clear_cache }}" data-toggle="tooltip" title="{{ button_clear_cache }}" class="btn btn-warning"><i class="fa fa-refresh"></i></a>
+        <button type="submit" form="form-probg-team" data-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary"><i class="fa fa-save"></i></button>
         <a href="{{ cancel }}" data-toggle="tooltip" title="{{ button_cancel }}" class="btn btn-default"><i class="fa fa-reply"></i></a>
       </div>
-      <h1>{{ heading_title_block }}</h1>
-      <ul class="breadcrumb">{% for breadcrumb in breadcrumbs %}<li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>{% endfor %}</ul>
+      <h1>{{ heading_title }}</h1>
+      <ul class="breadcrumb">
+        {% for breadcrumb in breadcrumbs %}<li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>{% endfor %}
+      </ul>
     </div>
   </div>
+
   <div class="container-fluid">
     {% if error_warning %}<div class="alert alert-danger alert-dismissible"><i class="fa fa-exclamation-circle"></i> {{ error_warning }}<button type="button" class="close" data-dismiss="alert">&times;</button></div>{% endif %}
+    {% if success %}<div class="alert alert-success alert-dismissible"><i class="fa fa-check-circle"></i> {{ success }}<button type="button" class="close" data-dismiss="alert">&times;</button></div>{% endif %}
+
+    <ul class="nav nav-tabs">
+      <li class="active"><a href="{{ settings_url }}">{{ text_tab_settings }}</a></li>
+      <li><a href="{{ categories_url }}">{{ text_tab_categories }}</a></li>
+      <li><a href="{{ members_url }}">{{ text_tab_members }}</a></li>
+    </ul>
+
+    <div class="row">
+      <div class="col-sm-6">
+        <div class="tile">
+          <div class="tile-heading">{{ text_categories_count }}</div>
+          <div class="tile-body"><i class="fa fa-folder-open"></i><h2 class="pull-right">{{ total_categories }}</h2></div>
+          <div class="tile-footer"><a href="{{ categories_url }}">{{ button_categories }}</a></div>
+        </div>
+      </div>
+      <div class="col-sm-6">
+        <div class="tile">
+          <div class="tile-heading">{{ text_members_count }}</div>
+          <div class="tile-body"><i class="fa fa-users"></i><h2 class="pull-right">{{ total_members }}</h2></div>
+          <div class="tile-footer"><a href="{{ members_url }}">{{ button_members }}</a></div>
+        </div>
+      </div>
+    </div>
+
     <div class="panel panel-default">
-      <div class="panel-heading"><h3 class="panel-title"><i class="fa fa-pencil"></i> {{ text_edit_block }}</h3></div>
+      <div class="panel-heading"><h3 class="panel-title"><i class="fa fa-pencil"></i> {{ text_edit }}</h3></div>
       <div class="panel-body">
-        <form action="{{ action }}" method="post" enctype="multipart/form-data" id="form-probg-team-block" class="form-horizontal">
-          <div class="form-group required">
-            <label class="col-sm-2 control-label">{{ entry_name_block }}</label>
-            <div class="col-sm-10"><input type="text" name="name" value="{{ name }}" class="form-control" />{% if error_name %}<div class="text-danger">{{ error_name }}</div>{% endif %}</div>
-          </div>
-          <div class="form-group">
-            <label class="col-sm-2 control-label">{{ entry_title_block }}</label>
-            <div class="col-sm-10">
-              {% for language in languages %}
-                <div class="input-group" style="margin-bottom:8px"><span class="input-group-addon"><img src="language/{{ language.code }}/{{ language.code }}.png" title="{{ language.name }}" /></span><input type="text" name="title[{{ language.language_id }}]" value="{{ title[language.language_id]|default('') }}" class="form-control" /></div>
+        <div class="alert alert-info"><i class="fa fa-info-circle"></i> {{ text_architecture_info }} &nbsp; <strong>{{ text_version }}:</strong> {{ module_version }}</div>
+
+        <form action="{{ action }}" method="post" enctype="multipart/form-data" id="form-probg-team" class="form-horizontal">
+          <ul class="nav nav-tabs">
+            <li class="active"><a href="#tab-general" data-toggle="tab"><i class="fa fa-cog"></i> {{ text_settings }}</a></li>
+            <li><a href="#tab-content" data-toggle="tab"><i class="fa fa-language"></i> {{ text_content }}</a></li>
+            <li><a href="#tab-blocks" data-toggle="tab"><i class="fa fa-th-large"></i> {{ text_blocks }}</a></li>
+            <li><a href="#tab-menu" data-toggle="tab"><i class="fa fa-bars"></i> {{ text_menu_instances }}</a></li>
+            <li><a href="#tab-images" data-toggle="tab"><i class="fa fa-image"></i> {{ text_images }}</a></li>
+            <li><a href="#tab-integrations" data-toggle="tab"><i class="fa fa-plug"></i> {{ text_integrations|default('Integrations') }}</a></li>
+            <li><a href="#tab-diagnostics" data-toggle="tab"><i class="fa fa-stethoscope"></i> {{ text_diagnostics }}</a></li>
+          </ul>
+
+          <div class="tab-content">
+            <div class="tab-pane active" id="tab-general">
+              <div class="form-group"><label class="col-sm-2 control-label">{{ entry_status }}</label><div class="col-sm-10"><select name="module_probg_team_status" class="form-control"><option value="1"{% if module_probg_team_status %} selected{% endif %}>{{ text_enabled }}</option><option value="0"{% if not module_probg_team_status %} selected{% endif %}>{{ text_disabled }}</option></select></div></div>
+              <div class="form-group"><label class="col-sm-2 control-label">{{ entry_limit }}</label><div class="col-sm-10"><input type="number" min="1" max="5000" name="module_probg_team_limit" value="{{ module_probg_team_limit }}" class="form-control" /></div></div>
+              {% for field,label in {
+                'module_probg_team_show_empty_categories':entry_show_empty_categories,
+                'module_probg_team_show_telephone':entry_show_telephone,
+                'module_probg_team_show_city':entry_show_city,
+                'module_probg_team_show_working_hours':entry_show_working_hours,
+                'module_probg_team_show_website':entry_show_website,
+                'module_probg_team_show_social':entry_show_social
+              } %}
+                <div class="form-group"><label class="col-sm-2 control-label">{{ label }}</label><div class="col-sm-10"><select name="{{ field }}" class="form-control"><option value="1"{% if attribute(_context, field) %} selected{% endif %}>{{ text_yes }}</option><option value="0"{% if not attribute(_context, field) %} selected{% endif %}>{{ text_no }}</option></select></div></div>
               {% endfor %}
-              <p class="help-block">{{ help_title_block }}</p>
+            </div>
+
+            <div class="tab-pane" id="tab-content">
+              <ul class="nav nav-tabs" id="store-tabs">
+                {% for store in stores %}<li><a href="#store{{ store.store_id }}" data-toggle="tab"><i class="fa fa-shopping-cart"></i> {{ store.name }}</a></li>{% endfor %}
+              </ul>
+              <div class="tab-content">
+                {% for store in stores %}
+                  <div class="tab-pane" id="store{{ store.store_id }}">
+                    <ul class="nav nav-tabs language-tabs">
+                      {% for language in languages %}<li><a href="#store{{ store.store_id }}-language{{ language.language_id }}" data-toggle="tab"><img src="language/{{ language.code }}/{{ language.code }}.png" title="{{ language.name }}" /> {{ language.name }}</a></li>{% endfor %}
+                    </ul>
+                    {% if store.store_id %}<div class="alert alert-info"><i class="fa fa-info-circle"></i> {{ text_store_inherit }}</div>{% endif %}
+                    <div class="tab-content">
+                      {% for language in languages %}
+                        <div class="tab-pane" id="store{{ store.store_id }}-language{{ language.language_id }}">
+                          <div class="form-group{% if store.store_id == 0 %} required{% endif %}{% if error_title[store.store_id][language.language_id] %} has-error{% endif %}">
+                            <label class="col-sm-2 control-label">{{ entry_title }}</label>
+                            <div class="col-sm-10"><input type="text" name="module_probg_team_description[{{ store.store_id }}][{{ language.language_id }}][title]" value="{{ module_probg_team_description[store.store_id][language.language_id].title|default('') }}" class="form-control" />{% if error_title[store.store_id][language.language_id] %}<div class="text-danger">{{ error_title[store.store_id][language.language_id] }}</div>{% endif %}</div>
+                          </div>
+                          <div class="form-group"><label class="col-sm-2 control-label">{{ entry_description }}</label><div class="col-sm-10"><textarea name="module_probg_team_description[{{ store.store_id }}][{{ language.language_id }}][description]" data-toggle="summernote" data-lang="{{ summernote }}" class="form-control">{{ module_probg_team_description[store.store_id][language.language_id].description|default('') }}</textarea></div></div>
+                          <div class="form-group"><label class="col-sm-2 control-label">{{ entry_meta_title }}</label><div class="col-sm-10"><input type="text" name="module_probg_team_description[{{ store.store_id }}][{{ language.language_id }}][meta_title]" value="{{ module_probg_team_description[store.store_id][language.language_id].meta_title|default('') }}" class="form-control" /></div></div>
+                          <div class="form-group"><label class="col-sm-2 control-label">{{ entry_meta_description }}</label><div class="col-sm-10"><textarea name="module_probg_team_description[{{ store.store_id }}][{{ language.language_id }}][meta_description]" rows="3" class="form-control">{{ module_probg_team_description[store.store_id][language.language_id].meta_description|default('') }}</textarea></div></div>
+                          <div class="form-group"><label class="col-sm-2 control-label">{{ entry_meta_keyword }}</label><div class="col-sm-10"><textarea name="module_probg_team_description[{{ store.store_id }}][{{ language.language_id }}][meta_keyword]" rows="2" class="form-control">{{ module_probg_team_description[store.store_id][language.language_id].meta_keyword|default('') }}</textarea></div></div>
+                          <div class="form-group{% if error_seo_url[store.store_id][language.language_id] %} has-error{% endif %}"><label class="col-sm-2 control-label"><span data-toggle="tooltip" title="{{ help_seo_url }}">{{ entry_seo_url }}</span></label><div class="col-sm-10"><input type="text" name="module_probg_team_seo_url[{{ store.store_id }}][{{ language.language_id }}]" value="{{ module_probg_team_seo_url[store.store_id][language.language_id]|default('') }}" class="form-control" />{% if error_seo_url[store.store_id][language.language_id] %}<div class="text-danger">{{ error_seo_url[store.store_id][language.language_id] }}</div>{% endif %}</div></div>
+                        </div>
+                      {% endfor %}
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+
+            <div class="tab-pane" id="tab-blocks">
+              <div class="alert alert-info"><i class="fa fa-info-circle"></i> {{ text_blocks_help }} {{ text_instances_help }}</div>
+              <div class="text-right probg-team-instance-toolbar"><button type="button" id="button-add-team-block" class="btn btn-primary"><i class="fa fa-plus"></i> {{ button_add_block }}</button></div>
+              <div id="probg-team-block-editors">
+                {% for block in probg_team_blocks %}
+                  {% set row = loop.index0 %}
+                  <div class="panel panel-default probg-team-instance-editor" data-instance-row="{{ row }}">
+                    <div class="panel-heading clearfix"><h3 class="panel-title pull-left"><i class="fa fa-th-large"></i> <span class="probg-team-instance-title">{{ block.name }}</span></h3><button type="button" class="btn btn-danger btn-xs pull-right button-remove-team-instance"><i class="fa fa-trash"></i> {{ button_remove_instance }}</button></div>
+                    <div class="panel-body">
+                      <input type="hidden" name="probg_team_blocks[{{ row }}][module_id]" value="{{ block.module_id }}" />
+                      <input type="hidden" name="probg_team_blocks[{{ row }}][probg_team_type]" value="members" />
+                      <div class="form-group{% if error_block_name[row] %} has-error{% endif %}"><label class="col-sm-2 control-label">{{ entry_instance_name }}</label><div class="col-sm-10"><input type="text" name="probg_team_blocks[{{ row }}][name]" value="{{ block.name }}" class="form-control probg-team-instance-name" />{% if error_block_name[row] %}<div class="text-danger">{{ error_block_name[row] }}</div>{% endif %}</div></div>
+                      <div class="form-group"><label class="col-sm-2 control-label">{{ entry_instance_status }}</label><div class="col-sm-10"><select name="probg_team_blocks[{{ row }}][status]" class="form-control"><option value="1"{% if block.status %} selected{% endif %}>{{ text_enabled }}</option><option value="0"{% if not block.status %} selected{% endif %}>{{ text_disabled }}</option></select></div></div>
+                      <ul class="nav nav-tabs instance-language-tabs">{% for language in languages %}<li><a href="#block{{ row }}-language{{ language.language_id }}" data-toggle="tab"><img src="language/{{ language.code }}/{{ language.code }}.png" title="{{ language.name }}" /> {{ language.name }}</a></li>{% endfor %}</ul>
+                      <div class="tab-content">{% for language in languages %}<div class="tab-pane" id="block{{ row }}-language{{ language.language_id }}"><div class="form-group{% if error_block_title[row][language.language_id] %} has-error{% endif %}"><label class="col-sm-2 control-label">{{ entry_instance_title }}</label><div class="col-sm-10"><input type="text" name="probg_team_blocks[{{ row }}][title][{{ language.language_id }}]" value="{{ block.title[language.language_id]|default('') }}" class="form-control" />{% if error_block_title[row][language.language_id] %}<div class="text-danger">{{ error_block_title[row][language.language_id] }}</div>{% endif %}</div></div></div>{% endfor %}</div>
+                      <div class="form-group"><label class="col-sm-2 control-label">{{ entry_instance_category }}</label><div class="col-sm-10"><select name="probg_team_blocks[{{ row }}][team_category_id]" class="form-control"><option value="0">{{ text_all_categories }}</option>{% for category in categories %}<option value="{{ category.team_category_id }}"{% if category.team_category_id == block.team_category_id %} selected{% endif %}>{{ category.name }}</option>{% endfor %}</select></div></div>
+                      <div class="form-group{% if error_block_limit[row] %} has-error{% endif %}"><label class="col-sm-2 control-label">{{ entry_instance_limit }}</label><div class="col-sm-10"><input type="number" min="1" max="1000" name="probg_team_blocks[{{ row }}][limit]" value="{{ block.limit }}" class="form-control" />{% if error_block_limit[row] %}<div class="text-danger">{{ error_block_limit[row] }}</div>{% endif %}</div></div>
+                      <div class="form-group"><label class="col-sm-2 control-label">{{ entry_instance_columns }}</label><div class="col-sm-10"><select name="probg_team_blocks[{{ row }}][columns]" class="form-control">{% for col in [1,2,3,4,6] %}<option value="{{ col }}"{% if col == block.columns %} selected{% endif %}>{{ col }}</option>{% endfor %}</select></div></div>
+                      <div class="form-group"><label class="col-sm-2 control-label">{{ entry_instance_sort }}</label><div class="col-sm-10"><select name="probg_team_blocks[{{ row }}][sort]" class="form-control"><option value="sort_order"{% if block.sort == 'sort_order' %} selected{% endif %}>{{ text_sort_default }}</option><option value="name"{% if block.sort == 'name' %} selected{% endif %}>{{ text_sort_name }}</option><option value="date_added"{% if block.sort == 'date_added' %} selected{% endif %}>{{ text_sort_newest }}</option></select></div></div>
+                      {% for key,label in {'show_category':entry_instance_show_category,'show_city':entry_instance_show_city,'show_description':entry_instance_show_description} %}
+                        <div class="form-group"><label class="col-sm-2 control-label">{{ label }}</label><div class="col-sm-10"><select name="probg_team_blocks[{{ row }}][{{ key }}]" class="form-control"><option value="1"{% if attribute(block,key) %} selected{% endif %}>{{ text_yes }}</option><option value="0"{% if not attribute(block,key) %} selected{% endif %}>{{ text_no }}</option></select></div></div>
+                      {% endfor %}
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+
+            <div class="tab-pane" id="tab-menu">
+              <div class="alert alert-info"><i class="fa fa-info-circle"></i> {{ text_menus_help }} {{ text_instances_help }}</div>
+              <div class="text-right probg-team-instance-toolbar"><button type="button" id="button-add-team-menu" class="btn btn-primary"><i class="fa fa-plus"></i> {{ button_add_menu }}</button></div>
+              <div id="probg-team-menu-editors">
+                {% for menu in probg_team_menus %}
+                  {% set row = loop.index0 %}
+                  <div class="panel panel-default probg-team-instance-editor" data-instance-row="{{ row }}">
+                    <div class="panel-heading clearfix"><h3 class="panel-title pull-left"><i class="fa fa-bars"></i> <span class="probg-team-instance-title">{{ menu.name }}</span></h3><button type="button" class="btn btn-danger btn-xs pull-right button-remove-team-instance"><i class="fa fa-trash"></i> {{ button_remove_instance }}</button></div>
+                    <div class="panel-body">
+                      <input type="hidden" name="probg_team_menus[{{ row }}][module_id]" value="{{ menu.module_id }}" />
+                      <input type="hidden" name="probg_team_menus[{{ row }}][probg_team_type]" value="menu" />
+                      <div class="form-group{% if error_menu_name[row] %} has-error{% endif %}"><label class="col-sm-2 control-label">{{ entry_instance_name }}</label><div class="col-sm-10"><input type="text" name="probg_team_menus[{{ row }}][name]" value="{{ menu.name }}" class="form-control probg-team-instance-name" />{% if error_menu_name[row] %}<div class="text-danger">{{ error_menu_name[row] }}</div>{% endif %}</div></div>
+                      <div class="form-group"><label class="col-sm-2 control-label">{{ entry_instance_status }}</label><div class="col-sm-10"><select name="probg_team_menus[{{ row }}][status]" class="form-control"><option value="1"{% if menu.status %} selected{% endif %}>{{ text_enabled }}</option><option value="0"{% if not menu.status %} selected{% endif %}>{{ text_disabled }}</option></select></div></div>
+                      <ul class="nav nav-tabs instance-language-tabs">{% for language in languages %}<li><a href="#menu{{ row }}-language{{ language.language_id }}" data-toggle="tab"><img src="language/{{ language.code }}/{{ language.code }}.png" title="{{ language.name }}" /> {{ language.name }}</a></li>{% endfor %}</ul>
+                      <div class="tab-content">{% for language in languages %}<div class="tab-pane" id="menu{{ row }}-language{{ language.language_id }}"><div class="form-group{% if error_menu_title[row][language.language_id] %} has-error{% endif %}"><label class="col-sm-2 control-label">{{ entry_instance_title }}</label><div class="col-sm-10"><input type="text" name="probg_team_menus[{{ row }}][title][{{ language.language_id }}]" value="{{ menu.title[language.language_id]|default('') }}" class="form-control" />{% if error_menu_title[row][language.language_id] %}<div class="text-danger">{{ error_menu_title[row][language.language_id] }}</div>{% endif %}</div></div></div>{% endfor %}</div>
+                      <div class="form-group"><label class="col-sm-2 control-label">{{ entry_instance_category }}</label><div class="col-sm-10"><select name="probg_team_menus[{{ row }}][team_category_id]" class="form-control"><option value="0">{{ text_all_categories }}</option>{% for category in categories %}<option value="{{ category.team_category_id }}"{% if category.team_category_id == menu.team_category_id %} selected{% endif %}>{{ category.name }}</option>{% endfor %}</select></div></div>
+                      <div class="form-group{% if error_menu_limit[row] %} has-error{% endif %}"><label class="col-sm-2 control-label">{{ entry_instance_limit }}</label><div class="col-sm-10"><input type="number" min="1" max="1000" name="probg_team_menus[{{ row }}][limit]" value="{{ menu.limit }}" class="form-control" />{% if error_menu_limit[row] %}<div class="text-danger">{{ error_menu_limit[row] }}</div>{% endif %}</div></div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+
+            <div class="tab-pane" id="tab-images">
+              <div class="form-group"><label class="col-sm-2 control-label">{{ entry_list_size }}</label><div class="col-sm-5"><input type="number" min="1" max="5000" name="module_probg_team_list_width" value="{{ module_probg_team_list_width }}" class="form-control" /></div><div class="col-sm-5"><input type="number" min="1" max="5000" name="module_probg_team_list_height" value="{{ module_probg_team_list_height }}" class="form-control" /></div></div>
+              <div class="form-group"><label class="col-sm-2 control-label">{{ entry_member_size }}</label><div class="col-sm-5"><input type="number" min="1" max="5000" name="module_probg_team_member_width" value="{{ module_probg_team_member_width }}" class="form-control" /></div><div class="col-sm-5"><input type="number" min="1" max="5000" name="module_probg_team_member_height" value="{{ module_probg_team_member_height }}" class="form-control" /></div></div>
+              <div class="form-group"><label class="col-sm-2 control-label">{{ entry_gallery_size }}</label><div class="col-sm-5"><input type="number" min="1" max="5000" name="module_probg_team_gallery_width" value="{{ module_probg_team_gallery_width }}" class="form-control" /></div><div class="col-sm-5"><input type="number" min="1" max="5000" name="module_probg_team_gallery_height" value="{{ module_probg_team_gallery_height }}" class="form-control" /></div></div>
+            </div>
+
+            <div class="tab-pane" id="tab-integrations">
+              {% for field,label in {
+                'module_probg_team_open_graph_status':entry_open_graph_status,
+                'module_probg_team_schema_status':entry_schema_status,
+                'module_probg_team_cache_status':entry_cache_status,
+                'module_probg_team_search_status':entry_search_status,
+                'module_probg_team_sitemap_status':entry_sitemap_status
+              } %}
+                <div class="form-group"><label class="col-sm-2 control-label">{{ label }}</label><div class="col-sm-10"><select name="{{ field }}" class="form-control"><option value="1"{% if attribute(_context, field) %} selected{% endif %}>{{ text_yes }}</option><option value="0"{% if not attribute(_context, field) %} selected{% endif %}>{{ text_no }}</option></select></div></div>
+              {% endfor %}
+              <div class="form-group"><label class="col-sm-2 control-label"><span data-toggle="tooltip" title="{{ help_search_limit }}">{{ entry_search_limit }}</span></label><div class="col-sm-10"><input type="number" min="1" max="5000" name="module_probg_team_search_limit" value="{{ module_probg_team_search_limit }}" class="form-control" /></div></div>
+              <div class="form-group"><label class="col-sm-2 control-label"><span data-toggle="tooltip" title="{{ help_sitemap_url }}">{{ entry_sitemap_url }}</span></label><div class="col-sm-10"><div class="input-group"><input type="text" value="{{ sitemap_url }}" readonly class="form-control" /><span class="input-group-btn"><a href="{{ sitemap_url }}" target="_blank" class="btn btn-default"><i class="fa fa-external-link"></i></a></span></div><p class="help-block">{{ text_google_sitemap_integration }} <code>{{ google_sitemap_url }}</code></p></div></div>
+            </div>
+
+            <div class="tab-pane" id="tab-diagnostics">
+              <div class="alert {% if diagnostics.database_ok and diagnostics.working_hours and diagnostics.modification_enabled and diagnostics.orphan_members == 0 and diagnostics.invalid_member_stores == 0 %}alert-success{% else %}alert-warning{% endif %}">
+                <i class="fa {% if diagnostics.database_ok and diagnostics.working_hours and diagnostics.modification_enabled and diagnostics.orphan_members == 0 and diagnostics.invalid_member_stores == 0 %}fa-check-circle{% else %}fa-exclamation-triangle{% endif %}"></i>
+                {{ text_diagnostics_summary }}
+              </div>
+              <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                  <tbody>
+                    <tr><td>{{ text_module_version }}</td><td><strong>{{ module_version }}</strong></td></tr>
+                    <tr><td>{{ text_database_schema }}</td><td><span class="label {% if diagnostics.database_ok %}label-success{% else %}label-danger{% endif %}">{% if diagnostics.database_ok %}{{ text_ok }}{% else %}{{ text_problem }}{% endif %}</span></td></tr>
+                    <tr><td>{{ text_working_hours_column }}</td><td><span class="label {% if diagnostics.working_hours %}label-success{% else %}label-danger{% endif %}">{% if diagnostics.working_hours %}{{ text_ok }}{% else %}{{ text_problem }}{% endif %}</span></td></tr>
+                    <tr><td>{{ text_ocmod_status }}</td><td><span class="label {% if diagnostics.modification_enabled %}label-success{% else %}label-danger{% endif %}">{% if diagnostics.modification_enabled %}{{ text_enabled }}{% elseif diagnostics.modification_installed %}{{ text_disabled }}{% else %}{{ text_not_installed }}{% endif %}</span></td></tr>
+                    <tr><td>{{ text_categories_count }}</td><td>{{ diagnostics.category_total }}</td></tr>
+                    <tr><td>{{ text_members_count }}</td><td>{{ diagnostics.member_total }}</td></tr>
+                    <tr><td>{{ text_orphan_members }}</td><td><span class="label {% if diagnostics.orphan_members == 0 %}label-success{% else %}label-danger{% endif %}">{{ diagnostics.orphan_members }}</span></td></tr>
+                    <tr><td>{{ text_invalid_member_stores }}</td><td><span class="label {% if diagnostics.invalid_member_stores == 0 %}label-success{% else %}label-danger{% endif %}">{{ diagnostics.invalid_member_stores }}</span></td></tr>
+                    <tr><td>{{ text_section_seo }}</td><td>{{ diagnostics.section_seo_total }} / {{ diagnostics.expected_section_seo }}</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              {% if not diagnostics.database_ok %}<div class="alert alert-danger"><strong>{{ text_missing_tables }}</strong><ul>{% for table, exists in diagnostics.tables %}{% if not exists %}<li><code>{{ table }}</code></li>{% endif %}{% endfor %}</ul></div>{% endif %}
+              <p class="help-block">{{ help_repair }}</p>
+              <a href="{{ repair }}" onclick="return confirm('{{ text_repair_confirm }}');" class="btn btn-warning"><i class="fa fa-wrench"></i> {{ button_repair }}</a>
             </div>
           </div>
-          <div class="form-group">
-            <label class="col-sm-2 control-label">{{ entry_category_block }}</label>
-            <div class="col-sm-10"><select name="team_category_id" class="form-control"><option value="0">{{ text_all_categories }}</option>{% for category in categories %}<option value="{{ category.team_category_id }}" {% if category.team_category_id == team_category_id %}selected{% endif %}>{{ category.name }}</option>{% endfor %}</select></div>
-          </div>
-          <div class="form-group required">
-            <label class="col-sm-2 control-label">{{ entry_limit }}</label>
-            <div class="col-sm-10"><input type="number" min="1" name="limit" value="{{ limit }}" class="form-control" />{% if error_limit %}<div class="text-danger">{{ error_limit }}</div>{% endif %}</div>
-          </div>
-          <div class="form-group">
-            <label class="col-sm-2 control-label">{{ entry_columns_block }}</label>
-            <div class="col-sm-10"><select name="columns" class="form-control">{% for value in [1,2,3,4,6] %}<option value="{{ value }}" {% if value == columns %}selected{% endif %}>{{ value }}</option>{% endfor %}</select></div>
-          </div>
-          <div class="form-group">
-            <label class="col-sm-2 control-label">{{ entry_sort_block }}</label>
-            <div class="col-sm-10"><select name="sort" class="form-control"><option value="sort_order" {% if sort == 'sort_order' %}selected{% endif %}>{{ text_sort_default }}</option><option value="name" {% if sort == 'name' %}selected{% endif %}>{{ text_sort_name }}</option><option value="date_added" {% if sort == 'date_added' %}selected{% endif %}>{{ text_sort_newest }}</option></select></div>
-          </div>
-          {% for field,label in {'show_category':entry_show_category_block,'show_city':entry_show_city,'show_description':entry_show_description_block} %}
-            <div class="form-group"><label class="col-sm-2 control-label">{{ label }}</label><div class="col-sm-10"><select name="{{ field }}" class="form-control"><option value="1" {% if attribute(_context, field) %}selected{% endif %}>{{ text_yes }}</option><option value="0" {% if not attribute(_context, field) %}selected{% endif %}>{{ text_no }}</option></select></div></div>
-          {% endfor %}
-          <div class="form-group"><label class="col-sm-2 control-label">{{ entry_status }}</label><div class="col-sm-10"><select name="status" class="form-control"><option value="1" {% if status %}selected{% endif %}>{{ text_enabled }}</option><option value="0" {% if not status %}selected{% endif %}>{{ text_disabled }}</option></select></div></div>
         </form>
       </div>
     </div>
   </div>
 </div>
+
+<script type="text/template" id="probg-team-block-template">
+<div class="panel panel-default probg-team-instance-editor" data-instance-row="__ROW__">
+  <div class="panel-heading clearfix"><h3 class="panel-title pull-left"><i class="fa fa-th-large"></i> <span class="probg-team-instance-title">ProBG Team - Members</span></h3><button type="button" class="btn btn-danger btn-xs pull-right button-remove-team-instance"><i class="fa fa-trash"></i> {{ button_remove_instance }}</button></div>
+  <div class="panel-body">
+    <input type="hidden" name="probg_team_blocks[__ROW__][module_id]" value="0" />
+    <input type="hidden" name="probg_team_blocks[__ROW__][probg_team_type]" value="members" />
+    <div class="form-group"><label class="col-sm-2 control-label">{{ entry_instance_name }}</label><div class="col-sm-10"><input type="text" name="probg_team_blocks[__ROW__][name]" value="ProBG Team - Members" class="form-control probg-team-instance-name" /></div></div>
+    <div class="form-group"><label class="col-sm-2 control-label">{{ entry_instance_status }}</label><div class="col-sm-10"><select name="probg_team_blocks[__ROW__][status]" class="form-control"><option value="1" selected>{{ text_enabled }}</option><option value="0">{{ text_disabled }}</option></select></div></div>
+    <ul class="nav nav-tabs instance-language-tabs">{% for language in languages %}<li><a href="#block__ROW__-language{{ language.language_id }}" data-toggle="tab"><img src="language/{{ language.code }}/{{ language.code }}.png" title="{{ language.name }}" /> {{ language.name }}</a></li>{% endfor %}</ul>
+    <div class="tab-content">{% for language in languages %}<div class="tab-pane" id="block__ROW__-language{{ language.language_id }}"><div class="form-group"><label class="col-sm-2 control-label">{{ entry_instance_title }}</label><div class="col-sm-10"><input type="text" name="probg_team_blocks[__ROW__][title][{{ language.language_id }}]" value="" class="form-control" /></div></div></div>{% endfor %}</div>
+    <div class="form-group"><label class="col-sm-2 control-label">{{ entry_instance_category }}</label><div class="col-sm-10"><select name="probg_team_blocks[__ROW__][team_category_id]" class="form-control"><option value="0">{{ text_all_categories }}</option>{% for category in categories %}<option value="{{ category.team_category_id }}">{{ category.name }}</option>{% endfor %}</select></div></div>
+    <div class="form-group"><label class="col-sm-2 control-label">{{ entry_instance_limit }}</label><div class="col-sm-10"><input type="number" min="1" max="1000" name="probg_team_blocks[__ROW__][limit]" value="4" class="form-control" /></div></div>
+    <div class="form-group"><label class="col-sm-2 control-label">{{ entry_instance_columns }}</label><div class="col-sm-10"><select name="probg_team_blocks[__ROW__][columns]" class="form-control"><option>1</option><option>2</option><option>3</option><option value="4" selected>4</option><option>6</option></select></div></div>
+    <div class="form-group"><label class="col-sm-2 control-label">{{ entry_instance_sort }}</label><div class="col-sm-10"><select name="probg_team_blocks[__ROW__][sort]" class="form-control"><option value="sort_order">{{ text_sort_default }}</option><option value="name">{{ text_sort_name }}</option><option value="date_added">{{ text_sort_newest }}</option></select></div></div>
+    <div class="form-group"><label class="col-sm-2 control-label">{{ entry_instance_show_category }}</label><div class="col-sm-10"><select name="probg_team_blocks[__ROW__][show_category]" class="form-control"><option value="1" selected>{{ text_yes }}</option><option value="0">{{ text_no }}</option></select></div></div>
+    <div class="form-group"><label class="col-sm-2 control-label">{{ entry_instance_show_city }}</label><div class="col-sm-10"><select name="probg_team_blocks[__ROW__][show_city]" class="form-control"><option value="1">{{ text_yes }}</option><option value="0" selected>{{ text_no }}</option></select></div></div>
+    <div class="form-group"><label class="col-sm-2 control-label">{{ entry_instance_show_description }}</label><div class="col-sm-10"><select name="probg_team_blocks[__ROW__][show_description]" class="form-control"><option value="1">{{ text_yes }}</option><option value="0" selected>{{ text_no }}</option></select></div></div>
+  </div>
+</div>
+</script>
+
+<script type="text/template" id="probg-team-menu-template">
+<div class="panel panel-default probg-team-instance-editor" data-instance-row="__ROW__">
+  <div class="panel-heading clearfix"><h3 class="panel-title pull-left"><i class="fa fa-bars"></i> <span class="probg-team-instance-title">ProBG Team Menu</span></h3><button type="button" class="btn btn-danger btn-xs pull-right button-remove-team-instance"><i class="fa fa-trash"></i> {{ button_remove_instance }}</button></div>
+  <div class="panel-body">
+    <input type="hidden" name="probg_team_menus[__ROW__][module_id]" value="0" />
+    <input type="hidden" name="probg_team_menus[__ROW__][probg_team_type]" value="menu" />
+    <div class="form-group"><label class="col-sm-2 control-label">{{ entry_instance_name }}</label><div class="col-sm-10"><input type="text" name="probg_team_menus[__ROW__][name]" value="ProBG Team Menu" class="form-control probg-team-instance-name" /></div></div>
+    <div class="form-group"><label class="col-sm-2 control-label">{{ entry_instance_status }}</label><div class="col-sm-10"><select name="probg_team_menus[__ROW__][status]" class="form-control"><option value="1" selected>{{ text_enabled }}</option><option value="0">{{ text_disabled }}</option></select></div></div>
+    <ul class="nav nav-tabs instance-language-tabs">{% for language in languages %}<li><a href="#menu__ROW__-language{{ language.language_id }}" data-toggle="tab"><img src="language/{{ language.code }}/{{ language.code }}.png" title="{{ language.name }}" /> {{ language.name }}</a></li>{% endfor %}</ul>
+    <div class="tab-content">{% for language in languages %}<div class="tab-pane" id="menu__ROW__-language{{ language.language_id }}"><div class="form-group"><label class="col-sm-2 control-label">{{ entry_instance_title }}</label><div class="col-sm-10"><input type="text" name="probg_team_menus[__ROW__][title][{{ language.language_id }}]" value="" class="form-control" /></div></div></div>{% endfor %}</div>
+    <div class="form-group"><label class="col-sm-2 control-label">{{ entry_instance_category }}</label><div class="col-sm-10"><select name="probg_team_menus[__ROW__][team_category_id]" class="form-control"><option value="0">{{ text_all_categories }}</option>{% for category in categories %}<option value="{{ category.team_category_id }}">{{ category.name }}</option>{% endfor %}</select></div></div>
+    <div class="form-group"><label class="col-sm-2 control-label">{{ entry_instance_limit }}</label><div class="col-sm-10"><input type="number" min="1" max="1000" name="probg_team_menus[__ROW__][limit]" value="10" class="form-control" /></div></div>
+  </div>
+</div>
+</script>
+
+<script type="text/javascript">
+$('#store-tabs a:first').tab('show');
+$('.language-tabs, .instance-language-tabs').each(function() { $(this).find('a:first').tab('show'); });
+</script>
 {{ footer }}

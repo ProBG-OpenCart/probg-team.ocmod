@@ -108,7 +108,8 @@ class ControllerExtensionProbgTeamMember extends Controller {
                 'city' => $result['city'],
                 'sort_order' => (int)$result['sort_order'],
                 'status' => $result['status'] ? $this->language->get('text_enabled') : $this->language->get('text_disabled'),
-                'date_modified' => $result['date_modified'],
+                'date_added' => date($this->language->get('date_format_short'), strtotime($result['date_added'])),
+                'date_modified' => date($this->language->get('date_format_short'), strtotime($result['date_modified'])),
                 'view' => HTTPS_CATALOG . 'index.php?route=extension/probg_team/member&probg_team_category_id=' . (int)$result['team_category_id'] . '&probg_team_member_id=' . (int)$result['team_member_id'],
                 'edit' => $this->url->link('extension/probg_team/member/edit', 'user_token=' . $this->session->data['user_token'] . '&team_member_id=' . (int)$result['team_member_id'] . $url, true)
             );
@@ -118,6 +119,7 @@ class ControllerExtensionProbgTeamMember extends Controller {
         $data['categories'] = $this->model_extension_probg_team_category->getCategories(array('sort' => 'cd.name', 'order' => 'ASC', 'start' => 0, 'limit' => 1000));
         $data['breadcrumbs'] = array(
             array('text' => $this->language->get('text_home'), 'href' => $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token'], true)),
+            array('text' => $this->language->get('text_team'), 'href' => $this->url->link('extension/module/probg_team', 'user_token=' . $this->session->data['user_token'], true)),
             array('text' => $this->language->get('heading_title'), 'href' => $this->url->link('extension/probg_team/member', 'user_token=' . $this->session->data['user_token'] . $url, true))
         );
         $data['add'] = $this->url->link('extension/probg_team/member/add', 'user_token=' . $this->session->data['user_token'] . $url, true);
@@ -182,6 +184,7 @@ class ControllerExtensionProbgTeamMember extends Controller {
         $data['error_seo_url'] = isset($this->error['seo_url']) ? $this->error['seo_url'] : array();
         $data['breadcrumbs'] = array(
             array('text' => $this->language->get('text_home'), 'href' => $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token'], true)),
+            array('text' => $this->language->get('text_team'), 'href' => $this->url->link('extension/module/probg_team', 'user_token=' . $this->session->data['user_token'], true)),
             array('text' => $this->language->get('heading_title'), 'href' => $this->url->link('extension/probg_team/member', 'user_token=' . $this->session->data['user_token'], true))
         );
         $data['action'] = $member_id
@@ -212,6 +215,9 @@ class ControllerExtensionProbgTeamMember extends Controller {
         foreach (array('team_category_id' => 0, 'sort_order' => 0, 'status' => 1) as $field => $default) {
             $data[$field] = isset($this->request->post[$field]) ? $this->request->post[$field] : (isset($member_info[$field]) ? $member_info[$field] : $default);
         }
+
+        $data['date_added'] = isset($member_info['date_added']) ? date($this->language->get('datetime_format'), strtotime($member_info['date_added'])) : $this->language->get('text_automatic');
+        $data['date_modified'] = isset($member_info['date_modified']) ? date($this->language->get('datetime_format'), strtotime($member_info['date_modified'])) : $this->language->get('text_automatic');
 
         $this->load->model('extension/probg_team/category');
         $data['categories'] = $this->model_extension_probg_team_category->getCategories(array('sort' => 'cd.name', 'order' => 'ASC', 'start' => 0, 'limit' => 1000));

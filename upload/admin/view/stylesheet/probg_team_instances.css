@@ -1,0 +1,11 @@
+.probg-team-instance-editor > .panel-heading { min-height: 38px; }
+.probg-team-instance-editor .instance-language-tabs { margin-bottom: 15px; }
+.probg-team-instance-editor .panel-body > .form-group:last-child { margin-bottom: 0; }
+.probg-team-instance-toolbar { margin-bottom: 15px; }
+.probg-team-instance-manager .panel-title { line-height: 30px; }
+.probg-team-instance-manager .badge { margin-left: 5px; }
+.probg-team-instance-search { margin-bottom: 15px; }
+.probg-team-instance-save-note { margin-bottom: 0; }
+.probg-team-instance-manager td, .probg-team-instance-manager th { vertical-align: middle !important; }
+.probg-team-instance-editors-managed > .probg-team-instance-editor { margin-bottom: 15px; }
+#tab-blocks > .alert-info, #tab-menu > .alert-info { margin-bottom: 15px; }

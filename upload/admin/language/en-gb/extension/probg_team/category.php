@@ -15,3 +15,7 @@ $_['tab_stores']='Stores'; $_['entry_store']='Show in stores'; $_['help_store']=
 
 // v0.9.1 admin navigation
 $_['tab_settings']='Settings'; $_['tab_categories']='Categories'; $_['tab_members']='Members'; $_['text_all']='All';
+// v1.0.0-beta.2 layout inheritance
+$_['entry_layout']='Layout'; $_['text_default']='Default'; $_['help_layout']='The selected layout is used by the category and inherited by all members in it for the corresponding store.';
+// v1.0.0-beta.2 Blog architecture alignment
+$_['text_team']='ProBG Team'; $_['text_automatic']='Automatic'; $_['column_date_added']='Added'; $_['entry_date_added']='Date added'; $_['entry_date_modified']='Date modified';

@@ -2,7 +2,7 @@
 <modification>
   <name>ProBG Team</name>
   <code>probg_team</code>
-  <version>1.0.0-beta</version>
+  <version>1.0.0-beta.2</version>
   <author>ProBG</author>
   <link>https://probg.com/</link>
 
@@ -27,54 +27,29 @@
     </operation>
   </file>
 
-  <file path="admin/controller/extension/probg_team/setting.php">
+  <file path="catalog/model/design/layout.php">
     <operation error="skip">
-      <search><![CDATA[$this->model_extension_module_probg_team->upgrade();]]></search>
+      <search><![CDATA[public function getLayout($route) {]]></search>
       <add position="after"><![CDATA[
-        $this->load->model('extension/probg_team/category');
-        $this->load->model('extension/probg_team/member');
-        $data['total_categories'] = $this->model_extension_probg_team_category->getTotalCategories(array());
-        $data['total_members'] = $this->model_extension_probg_team_member->getTotalMembers(array());
+        if (isset($this->request->get['probg_team_category_id']) || isset($this->request->get['probg_team_member_id'])) {
+            $probg_team_layout_table = $this->db->query("SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '" . $this->db->escape(DB_PREFIX . "team_category_to_layout") . "' LIMIT 1");
+
+            if ($probg_team_layout_table->num_rows && isset($this->request->get['probg_team_category_id'])) {
+                $probg_team_layout = $this->db->query("SELECT layout_id FROM `" . DB_PREFIX . "team_category_to_layout` WHERE team_category_id = '" . (int)$this->request->get['probg_team_category_id'] . "' AND store_id = '" . (int)$this->config->get('config_store_id') . "' LIMIT 1");
+
+                if ($probg_team_layout->num_rows && (int)$probg_team_layout->row['layout_id']) {
+                    return (int)$probg_team_layout->row['layout_id'];
+                }
+            } elseif ($probg_team_layout_table->num_rows && isset($this->request->get['probg_team_member_id'])) {
+                $probg_team_layout = $this->db->query("SELECT c2l.layout_id FROM `" . DB_PREFIX . "team_member` tm INNER JOIN `" . DB_PREFIX . "team_category_to_layout` c2l ON (c2l.team_category_id = tm.team_category_id) WHERE tm.team_member_id = '" . (int)$this->request->get['probg_team_member_id'] . "' AND c2l.store_id = '" . (int)$this->config->get('config_store_id') . "' LIMIT 1");
+
+                if ($probg_team_layout->num_rows && (int)$probg_team_layout->row['layout_id']) {
+                    return (int)$probg_team_layout->row['layout_id'];
+                }
+            }
+        }
       ]]></add>
     </operation>
-  </file>
-
-  <file path="admin/view/template/extension/probg_team/setting.twig">
-    <operation error="skip">
-      <search><![CDATA[<div class="panel panel-default">]]></search>
-      <add position="before"><![CDATA[
-    <ul class="nav nav-tabs">
-      <li class="active"><a href="index.php?route=extension/module/probg_team&user_token={{ user_token }}">{{ text_tab_settings }}</a></li>
-      <li><a href="index.php?route=extension/probg_team/category&user_token={{ user_token }}">{{ text_tab_categories }}</a></li>
-      <li><a href="index.php?route=extension/probg_team/member&user_token={{ user_token }}">{{ text_tab_members }}</a></li>
-    </ul>
-    <div class="row">
-      <div class="col-sm-6"><div class="tile"><div class="tile-heading">{{ text_categories_count }}</div><div class="tile-body"><i class="fa fa-folder-open"></i><h2 class="pull-right">{{ total_categories }}</h2></div><div class="tile-footer"><a href="index.php?route=extension/probg_team/category&user_token={{ user_token }}">{{ button_categories }}</a></div></div></div>
-      <div class="col-sm-6"><div class="tile"><div class="tile-heading">{{ text_members_count }}</div><div class="tile-body"><i class="fa fa-users"></i><h2 class="pull-right">{{ total_members }}</h2></div><div class="tile-footer"><a href="index.php?route=extension/probg_team/member&user_token={{ user_token }}">{{ button_members }}</a></div></div></div>
-    </div>
-      ]]></add>
-    </operation>
-  </file>
-
-  <file path="admin/view/template/extension/probg_team/category_list.twig">
-    <operation error="skip"><search><![CDATA[<div class="panel panel-default">]]></search><add position="before"><![CDATA[
-<ul class="nav nav-tabs"><li><a href="index.php?route=extension/module/probg_team&user_token={{ user_token }}">{{ tab_settings }}</a></li><li class="active"><a href="index.php?route=extension/probg_team/category&user_token={{ user_token }}">{{ tab_categories }}</a></li><li><a href="index.php?route=extension/probg_team/member&user_token={{ user_token }}">{{ tab_members }}</a></li></ul>
-    ]]></add></operation>
-  </file>
-  <file path="admin/view/template/extension/probg_team/category_form.twig">
-    <operation error="skip"><search><![CDATA[<div class="panel panel-default">]]></search><add position="before"><![CDATA[
-<ul class="nav nav-tabs"><li><a href="index.php?route=extension/module/probg_team&user_token={{ user_token }}">{{ tab_settings }}</a></li><li class="active"><a href="index.php?route=extension/probg_team/category&user_token={{ user_token }}">{{ tab_categories }}</a></li><li><a href="index.php?route=extension/probg_team/member&user_token={{ user_token }}">{{ tab_members }}</a></li></ul>
-    ]]></add></operation>
-  </file>
-  <file path="admin/view/template/extension/probg_team/member_list.twig">
-    <operation error="skip"><search><![CDATA[<div class="panel panel-default">]]></search><add position="before"><![CDATA[
-<ul class="nav nav-tabs"><li><a href="index.php?route=extension/module/probg_team&user_token={{ user_token }}">{{ tab_settings }}</a></li><li><a href="index.php?route=extension/probg_team/category&user_token={{ user_token }}">{{ tab_categories }}</a></li><li class="active"><a href="index.php?route=extension/probg_team/member&user_token={{ user_token }}">{{ tab_members }}</a></li></ul>
-    ]]></add></operation>
-  </file>
-  <file path="admin/view/template/extension/probg_team/member_form.twig">
-    <operation error="skip"><search><![CDATA[<div class="panel panel-default">]]></search><add position="before"><![CDATA[
-<ul class="nav nav-tabs"><li><a href="index.php?route=extension/module/probg_team&user_token={{ user_token }}">{{ tab_settings }}</a></li><li><a href="index.php?route=extension/probg_team/category&user_token={{ user_token }}">{{ tab_categories }}</a></li><li class="active"><a href="index.php?route=extension/probg_team/member&user_token={{ user_token }}">{{ tab_members }}</a></li></ul>
-    ]]></add></operation>
   </file>
 
   <file path="catalog/controller/startup/seo_url.php">

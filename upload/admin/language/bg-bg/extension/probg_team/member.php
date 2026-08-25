@@ -13,3 +13,6 @@ $_['tab_stores']='Магазини'; $_['entry_store']='Показване в м
 
 // v0.9.1 admin navigation
 $_['tab_settings']='Настройки'; $_['tab_categories']='Категории'; $_['tab_members']='Членове'; $_['text_all']='Всички';
+// v1.0.0-beta.2 Blog architecture alignment
+$_['text_team']='ProBG Екип'; $_['text_automatic']='Автоматично'; $_['column_date_added']='Добавен'; $_['entry_date_added']='Дата на добавяне'; $_['entry_date_modified']='Дата на обновяване';
+$_['help_category_layout']='Профилът на члена използва Layout-а, зададен за избраната категория и текущия магазин.';

@@ -1,5 +1,31 @@
 # Changelog
 
+## 1.0.0-beta.2 — 2026-08-25
+
+### feat — Български
+
+- Архитектурата на ProBG Team е синхронизирана с актуалния ProBG Blog 1.4.x там, където е приложима за модул „Екип“.
+- Блоковете с членове и менютата вече се записват като стандартни OpenCart module instances под един код `probg_team`, с вътрешен тип `members` или `menu`.
+- Добавена е автоматична миграция от старите `probg_team_members.<module_id>` и `probg_team_menu.<module_id>` записи към `probg_team.<module_id>`, без промяна на `module_id` или Layout позициите.
+- Глобалните настройки, блоковете и менютата се управляват от една административна страница на ProBG Team.
+- Добавена е таблица `team_category_to_layout` и избор на Layout за всяка категория по магазин.
+- Профилите на членовете наследяват Layout-а на своята категория за активния магазин.
+- Добавени са дата на добавяне/обновяване в административните списъци и форми за категории и членове.
+- Старият route `extension/probg_team/setting` остава като compatibility redirect.
+- Старите helper controllers/templates остават в пакета като преходна съвместимост, но след миграцията не се използват за нови Layout instances.
+
+### feat — English
+
+- Aligned ProBG Team with the current ProBG Blog 1.4.x architecture where that architecture is appropriate for a Team directory.
+- Member blocks and menus are now stored as standard OpenCart module instances under the single `probg_team` code, using an internal `members` or `menu` type.
+- Added automatic migration from legacy `probg_team_members.<module_id>` and `probg_team_menu.<module_id>` records to `probg_team.<module_id>` while preserving module IDs and Layout assignments.
+- Global settings, member blocks and menus are managed from one ProBG Team administration page.
+- Added `team_category_to_layout` and per-store Layout selection for Team categories.
+- Member profiles inherit the Layout configured for their category in the active store.
+- Added date-added/date-modified information to category and member administration lists and forms.
+- Kept `extension/probg_team/setting` as a compatibility redirect.
+- Legacy helper controllers/templates remain in the package for transition compatibility but are no longer used for new Layout instances after migration.
+
 ## 1.0.0-beta — 2026-08-15
 
 - Published the first 1.0.0 Beta release of ProBG Team.
@@ -39,7 +65,7 @@
 ## 0.8.0
 
 - Added versioned, idempotent database upgrades with an internal `module_probg_team_schema_version` marker.
-- Added a Diagnostics tab for table, column, OCMOD, data-integrity and section-SEO checks.
+- Added a Diagnostics tab for table, column, OCMOD integration, data-integrity and section-SEO checks.
 - Added a safe **Check and repair** action for missing schema elements and invalid member-store relations.
 - Changed global-settings persistence so multilingual section descriptions and SEO URL arrays are no longer duplicated in the standard `setting` table.
 - Added recovery and cleanup for legacy duplicated description and SEO-array setting rows from v0.5.x–v0.7.x, preventing data loss when a normalized table is missing.

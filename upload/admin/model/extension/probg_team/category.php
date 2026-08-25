@@ -51,6 +51,7 @@ class ModelExtensionProbgTeamCategory extends Model {
 
         $this->saveDescriptions($category_id, $data['category_description']);
         $this->saveStores($category_id, isset($data['category_store']) ? $data['category_store'] : array(0));
+        $this->saveLayouts($category_id, isset($data['category_layout']) ? $data['category_layout'] : array(), isset($data['category_store']) ? $data['category_store'] : array(0));
         $this->saveSeoUrls($category_id, isset($data['category_seo_url']) ? $data['category_seo_url'] : array(), $data['category_description'], $data['category_store']);
         $this->cache->set('probg_team.version', str_replace('.', '', sprintf('%.6F', microtime(true))));
 
@@ -65,6 +66,7 @@ class ModelExtensionProbgTeamCategory extends Model {
 
         $this->saveDescriptions($category_id, $data['category_description']);
         $this->saveStores($category_id, isset($data['category_store']) ? $data['category_store'] : array(0));
+        $this->saveLayouts($category_id, isset($data['category_layout']) ? $data['category_layout'] : array(), isset($data['category_store']) ? $data['category_store'] : array(0));
         $this->saveSeoUrls($category_id, isset($data['category_seo_url']) ? $data['category_seo_url'] : array(), $data['category_description'], $data['category_store']);
         $this->cache->set('probg_team.version', str_replace('.', '', sprintf('%.6F', microtime(true))));
     }
@@ -94,6 +96,22 @@ class ModelExtensionProbgTeamCategory extends Model {
         // Keep member visibility consistent with the selected stores of the category.
         if ($stores) {
             $this->db->query("DELETE mts FROM `" . DB_PREFIX . "team_member_to_store` mts INNER JOIN `" . DB_PREFIX . "team_member` tm ON (mts.team_member_id = tm.team_member_id) WHERE tm.team_category_id = '" . (int)$category_id . "' AND mts.store_id NOT IN (" . implode(',', $stores) . ")");
+        }
+    }
+
+    protected function saveLayouts($category_id, $layouts, $stores = array(0)) {
+        $this->db->query("DELETE FROM `" . DB_PREFIX . "team_category_to_layout` WHERE team_category_id = '" . (int)$category_id . "'");
+
+        $valid_stores = $this->normalizeStores($stores);
+        $valid_store_map = array_flip($valid_stores);
+
+        foreach ((array)$layouts as $store_id => $layout_id) {
+            $store_id = (int)$store_id;
+            $layout_id = (int)$layout_id;
+
+            if ($layout_id > 0 && isset($valid_store_map[$store_id])) {
+                $this->db->query("INSERT INTO `" . DB_PREFIX . "team_category_to_layout` SET team_category_id = '" . (int)$category_id . "', store_id = '" . $store_id . "', layout_id = '" . $layout_id . "'");
+            }
         }
     }
 
@@ -134,6 +152,7 @@ class ModelExtensionProbgTeamCategory extends Model {
         $this->db->query("DELETE FROM `" . DB_PREFIX . "team_category` WHERE team_category_id = '" . (int)$category_id . "'");
         $this->db->query("DELETE FROM `" . DB_PREFIX . "team_category_description` WHERE team_category_id = '" . (int)$category_id . "'");
         $this->db->query("DELETE FROM `" . DB_PREFIX . "team_category_to_store` WHERE team_category_id = '" . (int)$category_id . "'");
+        $this->db->query("DELETE FROM `" . DB_PREFIX . "team_category_to_layout` WHERE team_category_id = '" . (int)$category_id . "'");
         $this->db->query("DELETE FROM `" . DB_PREFIX . "seo_url` WHERE `query` = 'probg_team_category_id=" . (int)$category_id . "'");
         $this->cache->set('probg_team.version', str_replace('.', '', sprintf('%.6F', microtime(true))));
     }
@@ -180,6 +199,22 @@ class ModelExtensionProbgTeamCategory extends Model {
         }
 
         return $stores;
+    }
+
+    public function getLayouts($category_id) {
+        $layouts = array();
+        $query = $this->db->query("SELECT store_id, layout_id FROM `" . DB_PREFIX . "team_category_to_layout` WHERE team_category_id = '" . (int)$category_id . "'");
+
+        foreach ($query->rows as $row) {
+            $layouts[(int)$row['store_id']] = (int)$row['layout_id'];
+        }
+
+        return $layouts;
+    }
+
+    public function getLayoutId($category_id, $store_id) {
+        $query = $this->db->query("SELECT layout_id FROM `" . DB_PREFIX . "team_category_to_layout` WHERE team_category_id = '" . (int)$category_id . "' AND store_id = '" . (int)$store_id . "' LIMIT 1");
+        return $query->num_rows ? (int)$query->row['layout_id'] : 0;
     }
 
     public function getSeoUrls($category_id) {

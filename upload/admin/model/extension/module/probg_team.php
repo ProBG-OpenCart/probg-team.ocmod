@@ -2,12 +2,14 @@
 require_once(DIR_SYSTEM . 'library/probg_team/slug.php');
 
 class ModelExtensionModuleProbgTeam extends Model {
-    const SCHEMA_VERSION = '0.9.0';
+    const VERSION = '1.0.0-beta.2';
+    const SCHEMA_VERSION = '1.0.0';
 
     private $schema_tables = array(
         'team_category',
         'team_category_description',
         'team_category_to_store',
+        'team_category_to_layout',
         'team_member',
         'team_member_description',
         'team_member_image',
@@ -21,6 +23,8 @@ class ModelExtensionModuleProbgTeam extends Model {
 
     public function upgrade($force = false) {
         if (!$force && $this->getSchemaVersion() === self::SCHEMA_VERSION) {
+            // Version/default settings may change without a database schema change.
+            $this->ensureDefaultSettings();
             return;
         }
 
@@ -110,6 +114,13 @@ class ModelExtensionModuleProbgTeam extends Model {
                 PRIMARY KEY (`team_category_id`, `store_id`),
                 KEY `store_id` (`store_id`)
             ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci",
+            "CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "team_category_to_layout` (
+                `team_category_id` INT(11) NOT NULL,
+                `store_id` INT(11) NOT NULL DEFAULT '0',
+                `layout_id` INT(11) NOT NULL DEFAULT '0',
+                PRIMARY KEY (`team_category_id`, `store_id`),
+                KEY `layout_id` (`layout_id`)
+            ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci",
             "CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "team_member_to_store` (
                 `team_member_id` INT(11) NOT NULL,
                 `store_id` INT(11) NOT NULL DEFAULT '0',
@@ -138,6 +149,8 @@ class ModelExtensionModuleProbgTeam extends Model {
 
     private function ensureDefaultSettings() {
         $defaults = array(
+            'module_probg_team_version' => self::VERSION,
+            'module_probg_team_instances_migrated' => '0',
             'module_probg_team_show_working_hours' => '1',
             'module_probg_team_open_graph_status' => '1',
             'module_probg_team_schema_status' => '1',
@@ -154,6 +167,8 @@ class ModelExtensionModuleProbgTeam extends Model {
                 $this->db->query("INSERT INTO `" . DB_PREFIX . "setting` SET store_id = '0', code = 'module_probg_team', `key` = '" . $this->db->escape($key) . "', `value` = '" . $this->db->escape($value) . "', serialized = '0'");
             }
         }
+
+        $this->db->query("UPDATE `" . DB_PREFIX . "setting` SET `value` = '" . $this->db->escape(self::VERSION) . "', serialized = '0' WHERE store_id = '0' AND code = 'module_probg_team' AND `key` = 'module_probg_team_version'");
     }
 
     private function migrateStoreAssignments() {
@@ -246,6 +261,7 @@ class ModelExtensionModuleProbgTeam extends Model {
             "DROP TABLE IF EXISTS `" . DB_PREFIX . "team_member_to_store`",
             "DROP TABLE IF EXISTS `" . DB_PREFIX . "team_member`",
             "DROP TABLE IF EXISTS `" . DB_PREFIX . "team_category_description`",
+            "DROP TABLE IF EXISTS `" . DB_PREFIX . "team_category_to_layout`",
             "DROP TABLE IF EXISTS `" . DB_PREFIX . "team_category_to_store`",
             "DROP TABLE IF EXISTS `" . DB_PREFIX . "team_category`",
             "DROP TABLE IF EXISTS `" . DB_PREFIX . "team_setting_description`"
@@ -353,7 +369,7 @@ class ModelExtensionModuleProbgTeam extends Model {
                     $meta_title = $title;
                 }
 
-                $this->db->query("INSERT INTO `" . DB_PREFIX . "team_setting_description` SET store_id = '" . (int)$store_id . "', language_id = '" . (int)$language_id . "', title = '" . $this->db->escape($title) . "', description = '" . $this->db->escape(isset($description['description']) ? $description['description'] : '') . "', meta_title = '" . $this->db->escape($meta_title) . "', meta_description = '" . $this->db->escape(isset($description['meta_description']) ? $description['meta_description'] : '') . #, meta_keyword = '" . $this->db->escape(isset($description['meta_keyword']) ? $description['meta_keyword'] : '') . "'");
+                $this->db->query("INSERT INTO `" . DB_PREFIX . "team_setting_description` SET store_id = '" . (int)$store_id . "', language_id = '" . (int)$language_id . "', title = '" . $this->db->escape($title) . "', description = '" . $this->db->escape(isset($description['description']) ? $description['description'] : '') . "', meta_title = '" . $this->db->escape($meta_title) . "', meta_description = '" . $this->db->escape(isset($description['meta_description']) ? $description['meta_description'] : '') . "', meta_keyword = '" . $this->db->escape(isset($description['meta_keyword']) ? $description['meta_keyword'] : '') . "'");
             }
         }
 
@@ -426,7 +442,7 @@ class ModelExtensionModuleProbgTeam extends Model {
         $modification = $this->db->query("SELECT modification_id, status FROM `" . DB_PREFIX . "modification` WHERE code = 'probg_team' ORDER BY modification_id DESC LIMIT 1");
         $modification_installed = (bool)$modification->num_rows;
         $modification_enabled = $modification_installed && !empty($modification->row['status']);
-        $category_total = $this->tableExists('team_category') ? (int)$this->db->query("SELECT COUNT(*) AS total FROM `" . DB_PREFIX . "team_category`)->row['total'] : 0;
+        $category_total = $this->tableExists('team_category') ? (int)$this->db->query("SELECT COUNT(*) AS total FROM `" . DB_PREFIX . "team_category`")->row['total'] : 0;
         $member_total = $this->tableExists('team_member') ? (int)$this->db->query("SELECT COUNT(*) AS total FROM `" . DB_PREFIX . "team_member`")->row['total'] : 0;
         $orphan_members = 0;
         $invalid_member_stores = 0;
@@ -436,7 +452,7 @@ class ModelExtensionModuleProbgTeam extends Model {
         }
 
         if ($this->tableExists('team_member_to_store') && $this->tableExists('team_category_to_store') && $this->tableExists('team_member')) {
-            $invalid_member_stores = (int)$this->db->query("SELECT COUNT(*) AS total FROM `" . DB_PREFIX . "team_member_to_store m2s INNER JOIN `" . DB_PREFIX . "team_member` m ON (m2s.team_member_id = m.team_member_id) LEFT JOIN `" . DB_PREFIX . "team_category_to_store` c2s ON (m.team_category_id = c2s.team_category_id AND m2s.store_id = c2s.store_id) WHERE c2s.team_category_id IS NULL")->row['total'];
+            $invalid_member_stores = (int)$this->db->query("SELECT COUNT(*) AS total FROM `" . DB_PREFIX . "team_member_to_store` m2s INNER JOIN `" . DB_PREFIX . "team_member` m ON (m2s.team_member_id = m.team_member_id) LEFT JOIN `" . DB_PREFIX . "team_category_to_store` c2s ON (m.team_category_id = c2s.team_category_id AND m2s.store_id = c2s.store_id) WHERE c2s.team_category_id IS NULL")->row['total'];
         }
 
         $section_seo_total = (int)$this->db->query("SELECT COUNT(*) AS total FROM `" . DB_PREFIX . "seo_url` WHERE `query` = 'probg_team_section=1'")->row['total'];
