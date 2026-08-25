@@ -90,7 +90,8 @@ class ControllerExtensionProbgTeamCategory extends Controller {
                 'member_total' => (int)$result['member_total'],
                 'sort_order' => (int)$result['sort_order'],
                 'status' => $result['status'] ? $this->language->get('text_enabled') : $this->language->get('text_disabled'),
-                'date_modified' => $result['date_modified'],
+                'date_added' => date($this->language->get('date_format_short'), strtotime($result['date_added'])),
+                'date_modified' => date($this->language->get('date_format_short'), strtotime($result['date_modified'])),
                 'view' => HTTPS_CATALOG . 'index.php?route=extension/probg_team/category&probg_team_category_id=' . (int)$result['team_category_id'],
                 'edit' => $this->url->link('extension/probg_team/category/edit', 'user_token=' . $this->session->data['user_token'] . '&team_category_id=' . (int)$result['team_category_id'] . $url, true)
             );
@@ -98,6 +99,7 @@ class ControllerExtensionProbgTeamCategory extends Controller {
 
         $data['breadcrumbs'] = array(
             array('text' => $this->language->get('text_home'), 'href' => $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token'], true)),
+            array('text' => $this->language->get('text_team'), 'href' => $this->url->link('extension/module/probg_team', 'user_token=' . $this->session->data['user_token'], true)),
             array('text' => $this->language->get('heading_title'), 'href' => $this->url->link('extension/probg_team/category', 'user_token=' . $this->session->data['user_token'] . $url, true))
         );
         $data['add'] = $this->url->link('extension/probg_team/category/add', 'user_token=' . $this->session->data['user_token'] . $url, true);
@@ -149,6 +151,7 @@ class ControllerExtensionProbgTeamCategory extends Controller {
         $data['error_seo_url'] = isset($this->error['seo_url']) ? $this->error['seo_url'] : array();
         $data['breadcrumbs'] = array(
             array('text' => $this->language->get('text_home'), 'href' => $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token'], true)),
+            array('text' => $this->language->get('text_team'), 'href' => $this->url->link('extension/module/probg_team', 'user_token=' . $this->session->data['user_token'], true)),
             array('text' => $this->language->get('heading_title'), 'href' => $this->url->link('extension/probg_team/category', 'user_token=' . $this->session->data['user_token'], true))
         );
         $data['action'] = $category_id
@@ -161,6 +164,9 @@ class ControllerExtensionProbgTeamCategory extends Controller {
         foreach (array('sort_order' => 0, 'status' => 1) as $field => $default) {
             $data[$field] = isset($this->request->post[$field]) ? $this->request->post[$field] : (isset($category_info[$field]) ? $category_info[$field] : $default);
         }
+
+        $data['date_added'] = isset($category_info['date_added']) ? date($this->language->get('datetime_format'), strtotime($category_info['date_added'])) : $this->language->get('text_automatic');
+        $data['date_modified'] = isset($category_info['date_modified']) ? date($this->language->get('datetime_format'), strtotime($category_info['date_modified'])) : $this->language->get('text_automatic');
 
         $this->load->model('localisation/language');
         $data['languages'] = $this->model_localisation_language->getLanguages();
@@ -178,6 +184,12 @@ class ControllerExtensionProbgTeamCategory extends Controller {
         } else {
             $data['category_store'] = array_column($data['stores'], 'store_id');
         }
+
+        $this->load->model('design/layout');
+        $data['layouts'] = $this->model_design_layout->getLayouts();
+        $data['category_layout'] = isset($this->request->post['category_layout'])
+            ? (array)$this->request->post['category_layout']
+            : ($category_id ? $this->model_extension_probg_team_category->getLayouts($category_id) : array());
 
         $data['view'] = $category_id ? HTTPS_CATALOG . 'index.php?route=extension/probg_team/category&probg_team_category_id=' . $category_id : '';
         $data['summernote'] = $this->config->get('config_admin_language');
