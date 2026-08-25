@@ -21,7 +21,7 @@
       <div class="row">
         <div class="col-sm-5 probg-team-member-image">
           {% if popup %}
-            <a href="{{ popup }}" target="_blank" rel="noopener" class="thumbnail"><img src="{{ thumb }}" alt="{{ heading_title }}" title="{{ heading_title }}" class="img-responsive" /></a>
+            <a href="{{ popup }}" target="_blank" rel="noopener" class="thumbnail probg-team-gallery-link" title="{{ heading_title }}"><span class="probg-team-zoom-indicator" aria-hidden="true"><i class="fa fa-search-plus"></i></span><img src="{{ thumb }}" alt="{{ heading_title }}" title="{{ heading_title }}" class="img-responsive" /></a>
           {% else %}
             <div class="thumbnail"><img src="{{ thumb }}" alt="{{ heading_title }}" title="{{ heading_title }}" class="img-responsive" /></div>
           {% endif %}
@@ -69,7 +69,7 @@
         <div class="row probg-team-gallery">
           {% for image in images %}
             <div class="col-lg-3 col-md-3 col-sm-4 col-xs-6">
-              <a href="{{ image.popup }}" target="_blank" rel="noopener" class="thumbnail"><img src="{{ image.thumb }}" alt="{{ heading_title }}" class="img-responsive" loading="lazy" /></a>
+              <a href="{{ image.popup }}" target="_blank" rel="noopener" class="thumbnail probg-team-gallery-link" title="{{ heading_title }}"><span class="probg-team-zoom-indicator" aria-hidden="true"><i class="fa fa-search-plus"></i></span><img src="{{ image.thumb }}" alt="{{ heading_title }}" class="img-responsive" loading="lazy" /></a>
             </div>
           {% endfor %}
         </div>
