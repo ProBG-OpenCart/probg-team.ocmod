@@ -1,0 +1,90 @@
+name: Publish ProBG Team release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Module version from install.xml, e.g. 1.0.2'
+        required: true
+        type: string
+      package_version:
+        description: 'Version used in dist filename, e.g. 1.0.02'
+        required: true
+        type: string
+      prerelease:
+        description: 'Publish as GitHub prerelease'
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+env:
+  GH_TOKEN: ${{ github.token }}
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - name: Verify requested version
+        shell: bash
+        run: |
+          set -euo pipefail
+          ACTUAL="$(python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+          print((ET.parse('install.xml').getroot().findtext('version') or '').strip())
+          PY
+          )"
+          test "$ACTUAL" = "${{ inputs.version }}" || {
+            echo "install.xml version is $ACTUAL, requested ${{ inputs.version }}" >&2
+            exit 1
+          }
+          if git ls-remote --exit-code --tags origin "refs/tags/v${{ inputs.version }}" >/dev/null 2>&1; then
+            echo "Tag v${{ inputs.version }} already exists" >&2
+            exit 1
+          fi
+      - name: Validate and build release package
+        run: |
+          bash tools/validate.sh
+          bash tools/build-dist.sh "${{ inputs.package_version }}"
+      - name: Commit canonical dist
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add dist
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: build ProBG Team v${{ inputs.version }} dist"
+            git push origin HEAD:main
+          fi
+      - name: Tag release commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          RELEASE_SHA="$(git rev-parse HEAD)"
+          git tag -a "v${{ inputs.version }}" "$RELEASE_SHA" -m "ProBG Team v${{ inputs.version }}"
+          git push origin "v${{ inputs.version }}"
+      - name: Publish GitHub release
+        shell: bash
+        run: |
+          set -euo pipefail
+          FLAGS=(--repo ProBG-OpenCart/probg-team.ocmod --title "ProBG Team v${{ inputs.version }}" --generate-notes --verify-tag)
+          if [ "${{ inputs.prerelease }}" = "true" ]; then
+            FLAGS+=(--prerelease)
+          fi
+          gh release create "v${{ inputs.version }}" \
+            "dist/probg-team-${{ inputs.package_version }}.ocmod.zip" \
+            dist/SHA256SUMS \
+            "${FLAGS[@]}"
