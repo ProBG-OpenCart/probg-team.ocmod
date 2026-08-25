@@ -11,6 +11,11 @@
   </div></div>
   <div class="container-fluid">
     {% if error_warning %}<div class="alert alert-danger alert-dismissible"><i class="fa fa-exclamation-circle"></i> {{ error_warning }}<button type="button" class="close" data-dismiss="alert">&times;</button></div>{% endif %}
+    <ul class="nav nav-tabs">
+      <li><a href="index.php?route=extension/module/probg_team&user_token={{ user_token }}">{{ tab_settings }}</a></li>
+      <li class="active"><a href="index.php?route=extension/probg_team/category&user_token={{ user_token }}">{{ tab_categories }}</a></li>
+      <li><a href="index.php?route=extension/probg_team/member&user_token={{ user_token }}">{{ tab_members }}</a></li>
+    </ul>
     <div class="panel panel-default"><div class="panel-heading"><h3 class="panel-title"><i class="fa fa-pencil"></i> {{ text_form }}</h3></div><div class="panel-body">
       <form action="{{ action }}" method="post" id="form-category" class="form-horizontal">
         <ul class="nav nav-tabs">
@@ -43,9 +48,12 @@
           <div class="tab-pane" id="tab-data">
             <div class="form-group"><label class="col-sm-2 control-label">{{ entry_sort_order }}</label><div class="col-sm-10"><input type="number" name="sort_order" value="{{ sort_order }}" class="form-control" /></div></div>
             <div class="form-group"><label class="col-sm-2 control-label">{{ entry_status }}</label><div class="col-sm-10"><select name="status" class="form-control"><option value="1" {% if status %}selected{% endif %}>{{ text_enabled }}</option><option value="0" {% if not status %}selected{% endif %}>{{ text_disabled }}</option></select></div></div>
+            <div class="form-group"><label class="col-sm-2 control-label">{{ entry_date_added }}</label><div class="col-sm-10"><p class="form-control-static">{{ date_added }}</p></div></div>
+            <div class="form-group"><label class="col-sm-2 control-label">{{ entry_date_modified }}</label><div class="col-sm-10"><p class="form-control-static">{{ date_modified }}</p></div></div>
           </div>
           <div class="tab-pane" id="tab-stores">
             <div class="form-group required"><label class="col-sm-2 control-label">{{ entry_store }}</label><div class="col-sm-10"><div class="well well-sm" style="height:150px;overflow:auto;">{% for store in stores %}<div class="checkbox"><label><input type="checkbox" name="category_store[]" value="{{ store.store_id }}" {% if store.store_id in category_store %}checked{% endif %} /> {{ store.name }}</label></div>{% endfor %}</div>{% if error_store %}<div class="text-danger">{{ error_store }}</div>{% endif %}<p class="help-block">{{ help_store }}</p></div></div>
+            <div class="form-group"><label class="col-sm-2 control-label">{{ entry_layout }}</label><div class="col-sm-10">{% for store in stores %}<div class="row" style="margin-bottom:10px"><div class="col-sm-4"><strong>{{ store.name }}</strong></div><div class="col-sm-8"><select name="category_layout[{{ store.store_id }}]" class="form-control"><option value="0">{{ text_default }}</option>{% for layout in layouts %}<option value="{{ layout.layout_id }}"{% if category_layout[store.store_id] is defined and category_layout[store.store_id] == layout.layout_id %} selected{% endif %}>{{ layout.name }}</option>{% endfor %}</select></div></div>{% endfor %}<p class="help-block">{{ help_layout }}</p></div></div>
           </div>
         </div>
       </form>
