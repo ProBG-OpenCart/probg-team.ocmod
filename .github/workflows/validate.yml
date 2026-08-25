@@ -1,0 +1,68 @@
+name: Validate ProBG Team
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  syntax:
+    name: PHP ${{ matrix.php }} validation
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['7.4', '8.3']
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+      - name: Validate source and committed dist
+        run: bash tools/validate.sh
+
+  package:
+    name: Reproducible package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - name: Read module version
+        id: version
+        shell: bash
+        run: |
+          VERSION="$(python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+          print((ET.parse('install.xml').getroot().findtext('version') or '').strip())
+          PY
+          )"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+      - name: Build package twice and verify deterministic output
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash tools/build-dist.sh "${{ steps.version.outputs.version }}"
+          FIRST="$(sha256sum "dist/probg-team-${{ steps.version.outputs.version }}.ocmod.zip" | awk '{print $1}')"
+          bash tools/build-dist.sh "${{ steps.version.outputs.version }}"
+          SECOND="$(sha256sum "dist/probg-team-${{ steps.version.outputs.version }}.ocmod.zip" | awk '{print $1}')"
+          test "$FIRST" = "$SECOND"
+          echo "Deterministic SHA-256: $SECOND"
+      - name: Upload validation package
+        uses: actions/upload-artifact@v4
+        with:
+          name: probg-team-${{ steps.version.outputs.version }}-validation
+          path: |
+            dist/probg-team-${{ steps.version.outputs.version }}.ocmod.zip
+            dist/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 7
