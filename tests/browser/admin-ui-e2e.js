@@ -63,18 +63,16 @@ async function chooseFixtureImage(page, thumbSelector, inputSelector) {
   await page.locator('#button-image').click();
   await page.locator('#modal-image #filemanager').waitFor({ state: 'visible' });
 
-  const directImage = page.locator('#modal-image a.thumbnail img[title="browser-e2e.png"]');
-  if (await directImage.count() === 0) {
-    const catalogCheckbox = page.locator('#modal-image input[name="path[]"][value="catalog"]');
-    assert(await catalogCheckbox.count() > 0, 'Image Manager did not expose the catalog directory');
-    const catalogCell = catalogCheckbox.locator('xpath=ancestor::div[contains(@class,"col-sm-3") or contains(@class,"col-xs-6")][1]');
-    await catalogCell.locator('a.directory').click();
-    await page.locator('#modal-image a.thumbnail img[title="browser-e2e.png"]').waitFor({ state: 'visible' });
-  }
+  // OpenCart 3.0.2.0 opens Image Manager directly in image/catalog and splits
+  // long display names every 14 characters. Search by basename and select by the
+  // canonical hidden path instead of relying on directory/title markup.
+  await page.locator('#modal-image input[name="search"]').fill('browser-e2e');
+  await page.locator('#modal-image #button-search').click();
 
-  await page.locator('#modal-image a.thumbnail', {
-    has: page.locator('img[title="browser-e2e.png"]')
-  }).click();
+  const fixturePath = page.locator(`#modal-image input[name="path[]"][value="${IMAGE_PATH}"]`);
+  await fixturePath.waitFor({ state: 'attached' });
+  const fixtureCell = fixturePath.locator('xpath=../..');
+  await fixtureCell.locator('a.thumbnail').click();
 
   await page.locator('#modal-image').waitFor({ state: 'hidden' }).catch(() => {});
   const selected = await page.locator(inputSelector).inputValue();
