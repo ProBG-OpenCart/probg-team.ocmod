@@ -116,11 +116,11 @@ contains settings-page 'menu-probg-team'
 
 CATEGORY_PAGE_STATUS="$(request_status category-page GET "${BASE}/admin/index.php?route=extension/probg_team/category&user_token=${USER_TOKEN}")"
 expect_status category-page "$CATEGORY_PAGE_STATUS" 200
-contains category-page 'form-filter'
+contains category-page 'id="form-category"'
 
 MEMBER_PAGE_STATUS="$(request_status member-page GET "${BASE}/admin/index.php?route=extension/probg_team/member&user_token=${USER_TOKEN}")"
 expect_status member-page "$MEMBER_PAGE_STATUS" 200
-contains member-page 'form-filter'
+contains member-page 'id="form-member"'
 
 LANGUAGE_ID="$(db_scalar "SELECT language_id FROM oc_language WHERE status=1 ORDER BY sort_order, language_id LIMIT 1")"
 [ -n "$LANGUAGE_ID" ] || fail "No active language"
