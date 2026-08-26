@@ -1,0 +1,89 @@
+name: Package Installer E2E
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  package-installer:
+    name: OpenCart ${{ matrix.opencart }} Extensions Installer
+    runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:10.6
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_ROOT_HOST: '%'
+          MARIADB_DATABASE: opencart
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mariadb-admin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    strategy:
+      fail-fast: false
+      matrix:
+        opencart: ['3.0.2.0', '3.0.3.9']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 7.4 runtime
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          extensions: mysqli,gd,curl,zip,dom
+          coverage: none
+
+      - name: Build canonical install package
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash tools/build-dist.sh 1.0.02
+          test -f dist/probg-team-1.0.02.ocmod.zip
+          unzip -t dist/probg-team-1.0.02.ocmod.zip
+
+      - name: Download and install clean OpenCart
+        id: opencart
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ matrix.opencart }}"
+          ARCHIVE="/tmp/opencart-package-installer-${VERSION}.tar.gz"
+          EXTRACT="/tmp/opencart-package-installer-${VERSION}"
+          curl -fL --retry 4 --retry-all-errors \
+            "https://github.com/opencart/opencart/archive/refs/tags/${VERSION}.tar.gz" \
+            -o "$ARCHIVE"
+          mkdir -p "$EXTRACT"
+          tar -xzf "$ARCHIVE" -C "$EXTRACT"
+          ROOT="$(find "$EXTRACT" -mindepth 2 -maxdepth 2 -type d -name upload -print -quit)"
+          test -n "$ROOT"
+          touch "$ROOT/config.php" "$ROOT/admin/config.php"
+          php "$ROOT/install/cli_install.php" install \
+            --db_hostname 127.0.0.1 \
+            --db_username root \
+            --db_password root \
+            --db_database opencart \
+            --db_driver mysqli \
+            --db_port 3306 \
+            --db_prefix oc_ \
+            --username admin \
+            --password admin \
+            --email package-installer@example.com \
+            --http_server http://127.0.0.1:8080/
+          rm -rf "$ROOT/install"
+          echo "root=$ROOT" >> "$GITHUB_OUTPUT"
+
+      - name: Upload and install package through OpenCart Extensions Installer
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash tests/runtime/package_installer_smoke.sh \
+            "${{ steps.opencart.outputs.root }}" \
+            dist/probg-team-1.0.02.ocmod.zip
