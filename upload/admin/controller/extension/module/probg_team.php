@@ -197,7 +197,6 @@ class ControllerExtensionModuleProbgTeam extends Controller {
         $data['module_version'] = self::VERSION;
         $data['user_token'] = $this->session->data['user_token'];
         $data['summernote'] = $this->config->get('config_admin_language');
-
         $this->document->addStyle('view/javascript/summernote/summernote.css');
         $this->document->addScript('view/javascript/summernote/summernote.js');
         $this->document->addScript('view/javascript/summernote/opencart.js');
@@ -513,19 +512,37 @@ class ControllerExtensionModuleProbgTeam extends Controller {
     }
 
     private function grantPermissions() {
-        $this->load->model('user/user_group');
         $group_id = (int)$this->user->getGroupId();
+
+        if ($group_id < 1) {
+            return;
+        }
+
         $routes = array(
             'extension/module/probg_team',
+            'extension/probg_team',
             'extension/probg_team/setting',
             'extension/probg_team/category',
             'extension/probg_team/member'
         );
 
-        foreach ($routes as $route) {
-            $this->model_user_user_group->addPermission($group_id, 'access', $route);
-            $this->model_user_user_group->addPermission($group_id, 'modify', $route);
+        $query = $this->db->query("SELECT permission FROM `" . DB_PREFIX . "user_group` WHERE user_group_id = '" . $group_id . "' LIMIT 1");
+
+        if (!$query->num_rows) {
+            return;
         }
+
+        $permissions = json_decode($query->row['permission'], true);
+        if (!is_array($permissions)) {
+            $permissions = array();
+        }
+
+        foreach (array('access', 'modify') as $type) {
+            $existing = isset($permissions[$type]) && is_array($permissions[$type]) ? $permissions[$type] : array();
+            $permissions[$type] = array_values(array_unique(array_merge($existing, $routes)));
+        }
+
+        $this->db->query("UPDATE `" . DB_PREFIX . "user_group` SET permission = '" . $this->db->escape(json_encode($permissions)) . "' WHERE user_group_id = '" . $group_id . "'");
     }
 
     private function normalizePositiveInteger($value, $minimum, $maximum) {

@@ -11,7 +11,7 @@ The repository validates the extension against clean official OpenCart source tr
 - OpenCart 3.0.3.8
 - OpenCart 3.0.3.9
 
-The primary matrix is executed by `.github/workflows/validate.yml` on pull requests and pushes to `main`. The real generated-modification integration test is executed separately by `.github/workflows/ocmod-runtime.yml` on the oldest and newest supported OpenCart 3 lines.
+The primary matrix is executed by `.github/workflows/validate.yml` on pull requests and pushes to `main`. The real generated-modification integration test is executed separately by `.github/workflows/ocmod-runtime.yml` on the oldest and newest supported OpenCart 3 lines. The authenticated administration lifecycle is exercised by `.github/workflows/admin-runtime.yml` on the same edge versions.
 
 ## Static source and package validation
 
@@ -131,9 +131,32 @@ The generated modification cache is required to contain the Team changes for:
 
 The PHP rewrite router used by CI explicitly emulates the `_route_` value normally supplied by OpenCart's Apache `.htaccess`, allowing the built-in PHP server to exercise the real `startup/seo_url.php` modification path.
 
+## Real administration runtime validation
+
+`.github/workflows/admin-runtime.yml` exercises the authenticated ProBG Team administration lifecycle on OpenCart 3.0.2.0 and 3.0.3.9 with PHP 7.4 and MariaDB 10.6.
+
+For each edge-version job CI:
+
+1. installs a clean OpenCart store with the official CLI installer;
+2. registers and refreshes the real Team OCMOD through the authenticated admin route;
+3. installs ProBG Team through OpenCart's standard `extension/extension/module/install` route;
+4. verifies that the Team sidebar and Settings, Categories and Members pages are accessible with the permissions granted by the module itself;
+5. saves global settings, multilingual section content and section SEO data through the real settings controller;
+6. creates and persists a typed Members block and Team Menu as standard OpenCart module instances;
+7. executes the Diagnostics repair and manual cache-refresh routes;
+8. creates, filters and edits a Team category through the real administration controller;
+9. creates, filters and edits a Team member, including category, store, city, working hours, contact data and SEO URL;
+10. verifies that a category owning a member cannot be deleted;
+11. deletes the member and then successfully deletes the empty category;
+12. rejects fatal PHP errors, uncaught exceptions and parse errors from the administration HTTP flow.
+
+This runtime layer also guards the OpenCart 3 custom-route permission behavior: `startup/permission` resolves `extension/probg_team/category` and `extension/probg_team/member` to the parent access route `extension/probg_team`, while the Team controllers retain their dedicated `modify` permissions for write operations.
+
+The administration smoke test intentionally remains browserless. It validates HTTP/controller/model persistence and permissions, but it does not automate JavaScript-only UI interactions such as Image Manager dialogs, Summernote editing behavior, drag-and-drop interactions or visual Layout placement.
+
 ## What this proves
 
-A green compatibility and OCMOD-runtime matrix provides automated evidence that:
+A green compatibility, OCMOD-runtime and admin-runtime matrix provides automated evidence that:
 
 - the current OCMOD integration points exist in the tested OpenCart releases;
 - the extension can be overlaid without replacing core files;
@@ -141,19 +164,20 @@ A green compatibility and OCMOD-runtime matrix provides automated evidence that:
 - the actual OpenCart storefront can bootstrap and render the primary Team routes on the oldest and newest supported OpenCart 3 lines;
 - OpenCart can generate the Team modification cache through the real authenticated admin refresh route;
 - Team SEO, canonical, search, Google Sitemap and common-header metadata integrations execute successfully from that generated cache;
+- the module can be installed through the standard OpenCart module installer and can grant the administration permissions required by its custom routes;
+- settings, Diagnostics, module instances and category/member CRUD execute successfully through authenticated OpenCart administration HTTP routes;
 - source syntax and release packaging remain valid.
 
 ## What this does not replace
 
-These tests are not a full browser end-to-end or visual-regression suite. They do not prove compatibility with every third-party theme or extension combination and do not yet automate all Team administration CRUD operations.
+These tests are not a full browser end-to-end or visual-regression suite. They do not prove compatibility with every third-party theme or extension combination.
 
 Before publishing a production release, manual target-store verification should still cover at least:
 
 - Extensions Installer upload behavior in the target hosting environment;
-- Team administration permissions and navigation;
-- settings save and Diagnostics;
-- category/member CRUD and image selection;
-- category Layout inheritance and Team module-instance placement;
+- Image Manager selection and additional-image management;
+- Summernote editing behavior;
+- category Layout inheritance and visual Team module-instance placement;
 - active custom-theme overrides and responsive presentation;
 - conflicts with third-party modifications touching the same core insertion points.
 
