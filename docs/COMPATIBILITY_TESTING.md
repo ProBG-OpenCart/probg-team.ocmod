@@ -11,7 +11,7 @@ The repository validates the extension against clean official OpenCart source tr
 - OpenCart 3.0.3.8
 - OpenCart 3.0.3.9
 
-The matrix is executed by `.github/workflows/validate.yml` on pull requests and pushes to `main`.
+The primary matrix is executed by `.github/workflows/validate.yml` on pull requests and pushes to `main`. The real generated-modification integration test is executed separately by `.github/workflows/ocmod-runtime.yml` on the oldest and newest supported OpenCart 3 lines.
 
 ## Static source and package validation
 
@@ -37,7 +37,7 @@ For every version the harness checks:
 4. module files under `upload/` do not replace existing OpenCart core files;
 5. a clean package overlay preserves every module file byte-for-byte.
 
-At the time this test layer was introduced, the current ProBG Team package matched 8 OpenCart core target files and 11 OCMOD operations on all supported matrix versions with zero compatibility warnings.
+The current ProBG Team package matches 8 OpenCart core target files and 11 OCMOD operations on all supported matrix versions with zero compatibility warnings.
 
 ## Database/runtime smoke validation
 
@@ -65,7 +65,7 @@ The smoke test verifies:
 
 ## Real storefront HTTP smoke validation
 
-The edge versions of the supported OpenCart 3 range are also exercised through a real HTTP storefront runtime:
+The edge versions of the supported OpenCart 3 range are exercised through a real HTTP storefront runtime:
 
 - OpenCart 3.0.2.0 on PHP 7.4;
 - OpenCart 3.0.3.9 on PHP 7.4.
@@ -93,30 +93,68 @@ For each job CI:
 
 The intermediate OpenCart 3.0.3.7 and 3.0.3.8 lines continue to receive the full OCMOD, package-overlay and MariaDB lifecycle tests. Testing the oldest and newest supported lines through HTTP gives direct coverage of the compatibility range edges without duplicating the slowest browserless runtime job four times.
 
+## Real OCMOD refresh and integration validation
+
+`.github/workflows/ocmod-runtime.yml` goes beyond anchor checks and executes the actual OpenCart modification refresh path on OpenCart 3.0.2.0 and 3.0.3.9.
+
+For each edge-version job CI:
+
+1. installs a clean OpenCart store with the official CLI installer;
+2. removes the installer directory as a production store would;
+3. installs and seeds the Team fixture;
+4. registers the real `install.xml` in OpenCart's standard `modification` table;
+5. logs into the real OpenCart administration with the installed admin account;
+6. calls `marketplace/modification/refresh` with the authenticated `user_token`;
+7. verifies the generated files in `system/storage/modification/`;
+8. rejects OCMOD logs containing failure markers;
+9. starts the modified storefront and exercises the integrations over HTTP.
+
+The generated modification cache is required to contain the Team changes for:
+
+- `catalog/controller/startup/seo_url.php`;
+- `catalog/model/design/layout.php`;
+- `catalog/controller/common/header.php`;
+- `catalog/view/theme/default/template/common/header.twig`;
+- `catalog/controller/product/search.php`;
+- `catalog/view/theme/default/template/product/search.twig`;
+- `catalog/controller/extension/feed/google_sitemap.php`;
+- `admin/controller/common/column_left.php`.
+
+`tests/runtime/ocmod_http_smoke.sh` then verifies through real HTTP requests:
+
+- the three-level Team SEO hierarchy for section, category and member;
+- canonical HTTP 301 from the query-string member route to its Team SEO URL;
+- Open Graph and Twitter metadata injected through the modified common header;
+- Team member results injected into the standard OpenCart product search page;
+- Team section, category and member URLs appended to the standard Google Sitemap;
+- no fatal PHP error, uncaught exception or parse error during the integration flow.
+
+The PHP rewrite router used by CI explicitly emulates the `_route_` value normally supplied by OpenCart's Apache `.htaccess`, allowing the built-in PHP server to exercise the real `startup/seo_url.php` modification path.
+
 ## What this proves
 
-A green compatibility matrix provides automated evidence that:
+A green compatibility and OCMOD-runtime matrix provides automated evidence that:
 
-- the current OCMOD integration points still exist in the tested OpenCart releases;
+- the current OCMOD integration points exist in the tested OpenCart releases;
 - the extension can be overlaid without replacing core files;
-- the core Team install/upgrade/uninstall database lifecycle runs successfully against a real MariaDB server;
+- the Team install/upgrade/uninstall database lifecycle runs successfully against a real MariaDB server;
 - the actual OpenCart storefront can bootstrap and render the primary Team routes on the oldest and newest supported OpenCart 3 lines;
+- OpenCart can generate the Team modification cache through the real authenticated admin refresh route;
+- Team SEO, canonical, search, Google Sitemap and common-header metadata integrations execute successfully from that generated cache;
 - source syntax and release packaging remain valid.
 
 ## What this does not replace
 
-These tests are not a full browser end-to-end test suite. They do not prove visual compatibility with every third-party theme or extension combination, and the HTTP smoke layer does not currently execute the generated OCMOD cache produced by an administrator-side **Extensions > Modifications** refresh.
+These tests are not a full browser end-to-end or visual-regression suite. They do not prove compatibility with every third-party theme or extension combination and do not yet automate all Team administration CRUD operations.
 
 Before publishing a production release, manual target-store verification should still cover at least:
 
-- Extensions Installer and Modifications refresh;
+- Extensions Installer upload behavior in the target hosting environment;
 - Team administration permissions and navigation;
 - settings save and Diagnostics;
 - category/member CRUD and image selection;
-- SEO routes and canonical redirects after OCMOD refresh;
-- category Layout inheritance and Team module instances;
-- search integration and the standard Google Sitemap integration;
-- Open Graph tags injected into the common header;
-- active custom-theme overrides and responsive presentation.
+- category Layout inheritance and Team module-instance placement;
+- active custom-theme overrides and responsive presentation;
+- conflicts with third-party modifications touching the same core insertion points.
 
 Custom themes that replace standard OpenCart Twig insertion points may require theme-specific OCMOD or template integration even when the core compatibility matrix is green.

@@ -1,0 +1,92 @@
+name: OCMOD Runtime
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  ocmod-runtime:
+    name: OpenCart ${{ matrix.opencart }} OCMOD refresh
+    runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:10.6
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_ROOT_HOST: '%'
+          MARIADB_DATABASE: opencart
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mariadb-admin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    strategy:
+      fail-fast: false
+      matrix:
+        opencart: ['3.0.2.0', '3.0.3.9']
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup PHP 7.4 runtime
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          extensions: mysqli,gd,curl,zip,dom
+          coverage: none
+      - name: Download clean OpenCart source
+        id: opencart
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ matrix.opencart }}"
+          ARCHIVE="/tmp/opencart-ocmod-${VERSION}.tar.gz"
+          EXTRACT="/tmp/opencart-ocmod-${VERSION}"
+          curl -fL --retry 4 --retry-all-errors \
+            "https://github.com/opencart/opencart/archive/refs/tags/${VERSION}.tar.gz" \
+            -o "$ARCHIVE"
+          mkdir -p "$EXTRACT"
+          tar -xzf "$ARCHIVE" -C "$EXTRACT"
+          ROOT="$(find "$EXTRACT" -mindepth 2 -maxdepth 2 -type d -name upload -print -quit)"
+          test -n "$ROOT"
+          test -f "$ROOT/admin/index.php"
+          echo "root=$ROOT" >> "$GITHUB_OUTPUT"
+      - name: Install OpenCart and Team fixture
+        id: fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="${{ steps.opencart.outputs.root }}"
+          cp -a upload/. "$ROOT/"
+          touch "$ROOT/config.php" "$ROOT/admin/config.php"
+          php "$ROOT/install/cli_install.php" install \
+            --db_hostname 127.0.0.1 \
+            --db_username root \
+            --db_password root \
+            --db_database opencart \
+            --db_driver mysqli \
+            --db_port 3306 \
+            --db_prefix oc_ \
+            --username admin \
+            --password admin \
+            --email ocmod@example.com \
+            --http_server http://127.0.0.1:8080/
+          rm -rf "$ROOT/install"
+          php tests/runtime/prepare_http_fixture.php \
+            "$ROOT" 127.0.0.1 root root opencart 3306 http://127.0.0.1:8080/ \
+            | tee /tmp/probg-team-ocmod-fixture.env
+          cat /tmp/probg-team-ocmod-fixture.env >> "$GITHUB_OUTPUT"
+          php tests/runtime/register_ocmod.php \
+            127.0.0.1 root root opencart 3306 install.xml
+      - name: Refresh OCMOD through real admin and test integrations
+        shell: bash
+        run: |
+          bash tests/runtime/ocmod_http_smoke.sh \
+            "${{ steps.opencart.outputs.root }}" \
+            "${{ steps.fixture.outputs.CATEGORY_ID }}" \
+            "${{ steps.fixture.outputs.MEMBER_ID }}"
