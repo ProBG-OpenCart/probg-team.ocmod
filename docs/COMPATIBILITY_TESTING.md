@@ -63,6 +63,36 @@ The smoke test verifies:
 - `uninstall()` removes all Team-owned tables;
 - uninstall rotates the Team cache namespace.
 
+## Real storefront HTTP smoke validation
+
+The edge versions of the supported OpenCart 3 range are also exercised through a real HTTP storefront runtime:
+
+- OpenCart 3.0.2.0 on PHP 7.4;
+- OpenCart 3.0.3.9 on PHP 7.4.
+
+For each job CI:
+
+1. starts a fresh MariaDB 10.6 service;
+2. downloads the official OpenCart source tag;
+3. overlays the ProBG Team `upload/` files;
+4. installs OpenCart with the official `install/cli_install.php` installer;
+5. installs the Team schema and seeds a minimal active section, category and member fixture;
+6. starts the actual storefront through PHP's built-in HTTP server;
+7. issues real `curl` requests against OpenCart routes.
+
+`tests/runtime/http_storefront_smoke.sh` verifies:
+
+- the stock OpenCart home route boots successfully;
+- the Team section route returns the seeded section and category;
+- the category route returns the visible member and city;
+- the member profile returns its category, working hours and `ProfilePage` JSON-LD;
+- the standalone Team sitemap returns section, category and member URLs;
+- an unknown category returns HTTP 404;
+- a member requested through the wrong category hierarchy returns HTTP 404;
+- the PHP server log contains no fatal error, uncaught exception or parse error.
+
+The intermediate OpenCart 3.0.3.7 and 3.0.3.8 lines continue to receive the full OCMOD, package-overlay and MariaDB lifecycle tests. Testing the oldest and newest supported lines through HTTP gives direct coverage of the compatibility range edges without duplicating the slowest browserless runtime job four times.
+
 ## What this proves
 
 A green compatibility matrix provides automated evidence that:
@@ -70,11 +100,12 @@ A green compatibility matrix provides automated evidence that:
 - the current OCMOD integration points still exist in the tested OpenCart releases;
 - the extension can be overlaid without replacing core files;
 - the core Team install/upgrade/uninstall database lifecycle runs successfully against a real MariaDB server;
+- the actual OpenCart storefront can bootstrap and render the primary Team routes on the oldest and newest supported OpenCart 3 lines;
 - source syntax and release packaging remain valid.
 
 ## What this does not replace
 
-These tests are not a full browser end-to-end test suite. They do not prove visual compatibility with every third-party theme or extension combination.
+These tests are not a full browser end-to-end test suite. They do not prove visual compatibility with every third-party theme or extension combination, and the HTTP smoke layer does not currently execute the generated OCMOD cache produced by an administrator-side **Extensions > Modifications** refresh.
 
 Before publishing a production release, manual target-store verification should still cover at least:
 
@@ -82,11 +113,10 @@ Before publishing a production release, manual target-store verification should 
 - Team administration permissions and navigation;
 - settings save and Diagnostics;
 - category/member CRUD and image selection;
-- SEO routes and canonical redirects;
-- section, category and member frontend pages;
+- SEO routes and canonical redirects after OCMOD refresh;
 - category Layout inheritance and Team module instances;
-- search and sitemap integration;
-- Open Graph / JSON-LD output;
-- active custom-theme overrides.
+- search integration and the standard Google Sitemap integration;
+- Open Graph tags injected into the common header;
+- active custom-theme overrides and responsive presentation.
 
 Custom themes that replace standard OpenCart Twig insertion points may require theme-specific OCMOD or template integration even when the core compatibility matrix is green.
