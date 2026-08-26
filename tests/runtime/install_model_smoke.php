@@ -31,6 +31,9 @@ if ($mysqli->connect_errno) {
     test_fail('Database connection failed: ' . $mysqli->connect_error);
 }
 $mysqli->set_charset('utf8');
+// Match the OpenCart 3 MySQLi driver session so the stock installer SQL is
+// exercised under the same SQL mode as the application runtime.
+$mysqli->query("SET SESSION sql_mode = 'NO_ZERO_IN_DATE,NO_ENGINE_SUBSTITUTION'");
 
 $sql_file = $core_root . 'install/opencart.sql';
 $lines = file($sql_file);
@@ -41,8 +44,10 @@ foreach ($lines as $line) {
     }
     $sql .= $line;
     if (preg_match('/;\s*$/', $line)) {
-        if (!$mysqli->query($sql)) {
-            test_fail('OpenCart schema import failed: ' . $mysqli->error . "\nSQL: " . $sql);
+        try {
+            $mysqli->query($sql);
+        } catch (mysqli_sql_exception $exception) {
+            test_fail('OpenCart schema import failed: ' . $exception->getMessage() . "\nSQL: " . $sql);
         }
         $sql = '';
     }
@@ -65,7 +70,12 @@ class SmokeDB {
     }
 
     public function query($sql) {
-        $result = $this->mysqli->query($sql);
+        try {
+            $result = $this->mysqli->query($sql);
+        } catch (mysqli_sql_exception $exception) {
+            throw new RuntimeException($exception->getMessage() . "\nSQL: " . $sql, 0, $exception);
+        }
+
         if ($result === false) {
             throw new RuntimeException($this->mysqli->error . "\nSQL: " . $sql);
         }
