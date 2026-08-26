@@ -1,21 +1,32 @@
 # ProBG Team compatibility testing
 
-This document describes the automated OpenCart 3 compatibility checks used by ProBG Team.
+This document describes the automated OpenCart 3 compatibility and release-gate checks used by ProBG Team.
 
 ## Supported CI matrix
 
 The repository validates the extension against clean official OpenCart source trees for:
 
-- OpenCart 3.0.2.0
-- OpenCart 3.0.3.7
-- OpenCart 3.0.3.8
-- OpenCart 3.0.3.9
+- OpenCart 3.0.2.0;
+- OpenCart 3.0.3.7;
+- OpenCart 3.0.3.8;
+- OpenCart 3.0.3.9.
 
-The primary matrix is executed by `.github/workflows/validate.yml` on pull requests and pushes to `main`. The real generated-modification integration test is executed separately by `.github/workflows/ocmod-runtime.yml` on the oldest and newest supported OpenCart 3 lines. The authenticated administration lifecycle is exercised by `.github/workflows/admin-runtime.yml` on the same edge versions.
+The full static/database matrix runs on all four versions. The slow authenticated HTTP, browser and package-installer gates run on the oldest and newest supported versions: OpenCart 3.0.2.0 and 3.0.3.9.
+
+## Validation layers
+
+ProBG Team uses several independent CI layers instead of relying on one broad smoke test:
+
+- `.github/workflows/validate.yml` — source/package validation, PHP compatibility, deterministic builds, OpenCart core compatibility and database lifecycle;
+- `.github/workflows/ocmod-runtime.yml` — real authenticated OCMOD refresh and SEO/search/sitemap/header integration;
+- `.github/workflows/admin-runtime.yml` — real authenticated administration controllers, permissions, settings, Diagnostics and CRUD;
+- `.github/workflows/browser-e2e.yml` — real Chromium administration UI including JavaScript-only controls;
+- `.github/workflows/storefront-browser.yml` — responsive storefront, Layout integration and theme fallback in real Chromium;
+- `.github/workflows/package-installer-e2e.yml` — real `.ocmod.zip` upload and installation through OpenCart Extensions Installer.
 
 ## Static source and package validation
 
-Every CI run includes:
+Every primary validation run includes:
 
 - PHP syntax checks on PHP 7.4 and PHP 8.3;
 - `install.xml` XML parsing;
@@ -23,25 +34,32 @@ Every CI run includes:
 - module-version consistency checks;
 - committed `.ocmod.zip` integrity and layout validation;
 - SHA-256 verification for committed release packages;
-- deterministic package generation by building the same source twice and comparing SHA-256 hashes.
+- deterministic package generation by building the same source twice and comparing SHA-256 hashes;
+- rejection of root-level `.ocmod.zip` archives and package wrapper directories.
+
+The canonical v1.0.2 installation filename is:
+
+```text
+probg-team-1.0.02.ocmod.zip
+```
 
 ## OpenCart core compatibility validation
 
-`tools/check-opencart-compatibility.py` downloads no code itself; CI supplies a clean official OpenCart `upload/` tree for each matrix version.
+`tools/check-opencart-compatibility.py` validates the module against clean official OpenCart source trees supplied by CI.
 
-For every version the harness checks:
+For every supported version the harness checks:
 
 1. every `<file>` target in `install.xml` resolves to the expected OpenCart core file(s);
 2. every required OCMOD `<search>` anchor exists in the target core file;
-3. `error="skip"` operations are reported as warnings instead of hard failures when an optional anchor is unavailable;
+3. optional `error="skip"` operations are reported without hiding required-anchor failures;
 4. module files under `upload/` do not replace existing OpenCart core files;
 5. a clean package overlay preserves every module file byte-for-byte.
 
-The current ProBG Team package matches 8 OpenCart core target files and 11 OCMOD operations on all supported matrix versions with zero compatibility warnings.
+The current integration targets the standard OpenCart SEO URL, Layout, common header, product search, Google Sitemap and administration sidebar paths.
 
 ## Database/runtime smoke validation
 
-Each OpenCart compatibility job starts a clean MariaDB 10.6 service and imports that OpenCart version's stock `install/opencart.sql`.
+Each OpenCart compatibility job starts a clean MariaDB 10.6 service and imports the stock OpenCart schema for that version.
 
 The database session mirrors the OpenCart 3 MySQLi runtime SQL mode:
 
@@ -49,136 +67,162 @@ The database session mirrors the OpenCart 3 MySQLi runtime SQL mode:
 SET SESSION sql_mode = 'NO_ZERO_IN_DATE,NO_ENGINE_SUBSTITUTION';
 ```
 
-The module source is then overlaid into the clean OpenCart tree and `tests/runtime/install_model_smoke.php` exercises the actual ProBG Team administration model.
+`tests/runtime/install_model_smoke.php` exercises the real ProBG Team administration model and verifies:
 
-The smoke test verifies:
-
-- fresh module `install()` creates all required Team tables;
+- fresh `install()` creates all required Team tables;
 - module and schema version settings are written;
-- a second `install()` is idempotent and does not duplicate settings;
-- a simulated legacy schema without `working_hours` is upgraded correctly;
-- the restored `working_hours` column is `NOT NULL`;
-- categories and members without store assignments are repaired for the default store;
-- member store assignments remain constrained by category store assignments;
-- `uninstall()` removes all Team-owned tables;
+- repeated `install()` is idempotent;
+- legacy schema upgrades are repaired safely;
+- category/member store relations remain valid;
+- `uninstall()` removes Team-owned tables;
 - uninstall rotates the Team cache namespace.
 
-## Real storefront HTTP smoke validation
+## Real storefront HTTP validation
 
-The edge versions of the supported OpenCart 3 range are exercised through a real HTTP storefront runtime:
-
-- OpenCart 3.0.2.0 on PHP 7.4;
-- OpenCart 3.0.3.9 on PHP 7.4.
-
-For each job CI:
-
-1. starts a fresh MariaDB 10.6 service;
-2. downloads the official OpenCart source tag;
-3. overlays the ProBG Team `upload/` files;
-4. installs OpenCart with the official `install/cli_install.php` installer;
-5. installs the Team schema and seeds a minimal active section, category and member fixture;
-6. starts the actual storefront through PHP's built-in HTTP server;
-7. issues real `curl` requests against OpenCart routes.
+The edge versions are exercised through the actual OpenCart storefront on PHP 7.4 and MariaDB 10.6.
 
 `tests/runtime/http_storefront_smoke.sh` verifies:
 
-- the stock OpenCart home route boots successfully;
-- the Team section route returns the seeded section and category;
-- the category route returns the visible member and city;
-- the member profile returns its category, working hours and `ProfilePage` JSON-LD;
-- the standalone Team sitemap returns section, category and member URLs;
-- an unknown category returns HTTP 404;
-- a member requested through the wrong category hierarchy returns HTTP 404;
-- the PHP server log contains no fatal error, uncaught exception or parse error.
-
-The intermediate OpenCart 3.0.3.7 and 3.0.3.8 lines continue to receive the full OCMOD, package-overlay and MariaDB lifecycle tests. Testing the oldest and newest supported lines through HTTP gives direct coverage of the compatibility range edges without duplicating the slowest browserless runtime job four times.
+- stock OpenCart boot;
+- Team landing page;
+- category page;
+- member profile;
+- working hours and structured data;
+- standalone Team sitemap;
+- expected 404 behavior for invalid hierarchy requests;
+- absence of fatal PHP errors, uncaught exceptions and parse errors.
 
 ## Real OCMOD refresh and integration validation
 
-`.github/workflows/ocmod-runtime.yml` goes beyond anchor checks and executes the actual OpenCart modification refresh path on OpenCart 3.0.2.0 and 3.0.3.9.
+`.github/workflows/ocmod-runtime.yml` executes the real OpenCart modification-refresh flow on OpenCart 3.0.2.0 and 3.0.3.9.
 
-For each edge-version job CI:
+CI logs into the administration, refreshes modifications through `marketplace/modification/refresh`, verifies generated files under `system/storage/modification/`, and then exercises the modified storefront.
 
-1. installs a clean OpenCart store with the official CLI installer;
-2. removes the installer directory as a production store would;
-3. installs and seeds the Team fixture;
-4. registers the real `install.xml` in OpenCart's standard `modification` table;
-5. logs into the real OpenCart administration with the installed admin account;
-6. calls `marketplace/modification/refresh` with the authenticated `user_token`;
-7. verifies the generated files in `system/storage/modification/`;
-8. rejects OCMOD logs containing failure markers;
-9. starts the modified storefront and exercises the integrations over HTTP.
+The runtime verifies:
 
-The generated modification cache is required to contain the Team changes for:
+- three-level Team SEO hierarchy;
+- canonical redirects;
+- Open Graph and Twitter metadata;
+- Team results in standard OpenCart search;
+- Team URLs in standard Google Sitemap;
+- Team category Layout inheritance through the modified Layout model;
+- no OCMOD failure markers or fatal PHP runtime errors.
 
-- `catalog/controller/startup/seo_url.php`;
-- `catalog/model/design/layout.php`;
-- `catalog/controller/common/header.php`;
-- `catalog/view/theme/default/template/common/header.twig`;
-- `catalog/controller/product/search.php`;
-- `catalog/view/theme/default/template/product/search.twig`;
-- `catalog/controller/extension/feed/google_sitemap.php`;
-- `admin/controller/common/column_left.php`.
+## Real administration HTTP validation
 
-`tests/runtime/ocmod_http_smoke.sh` then verifies through real HTTP requests:
+`.github/workflows/admin-runtime.yml` exercises authenticated Team administration on OpenCart 3.0.2.0 and 3.0.3.9.
 
-- the three-level Team SEO hierarchy for section, category and member;
-- canonical HTTP 301 from the query-string member route to its Team SEO URL;
-- Open Graph and Twitter metadata injected through the modified common header;
-- Team member results injected into the standard OpenCart product search page;
-- Team section, category and member URLs appended to the standard Google Sitemap;
-- no fatal PHP error, uncaught exception or parse error during the integration flow.
+It covers:
 
-The PHP rewrite router used by CI explicitly emulates the `_route_` value normally supplied by OpenCart's Apache `.htaccess`, allowing the built-in PHP server to exercise the real `startup/seo_url.php` modification path.
+- installation through OpenCart's standard module-extension route;
+- permission grants for Team custom routes;
+- Team sidebar access;
+- global settings and multilingual section data;
+- typed Members block and Team Menu module instances;
+- Diagnostics repair;
+- manual cache refresh;
+- category create/filter/edit/delete lifecycle;
+- member create/filter/edit/delete lifecycle;
+- store relations, working hours, contact data and SEO URL persistence;
+- category delete protection while members exist.
 
-## Real administration runtime validation
+This layer focuses on controller/model/permission behavior and intentionally remains browserless.
 
-`.github/workflows/admin-runtime.yml` exercises the authenticated ProBG Team administration lifecycle on OpenCart 3.0.2.0 and 3.0.3.9 with PHP 7.4 and MariaDB 10.6.
+## Real administration browser E2E
 
-For each edge-version job CI:
+`.github/workflows/browser-e2e.yml` uses Playwright with headless Chromium on OpenCart 3.0.2.0 and 3.0.3.9.
 
-1. installs a clean OpenCart store with the official CLI installer;
-2. registers and refreshes the real Team OCMOD through the authenticated admin route;
-3. installs ProBG Team through OpenCart's standard `extension/extension/module/install` route;
-4. verifies that the Team sidebar and Settings, Categories and Members pages are accessible with the permissions granted by the module itself;
-5. saves global settings, multilingual section content and section SEO data through the real settings controller;
-6. creates and persists a typed Members block and Team Menu as standard OpenCart module instances;
-7. executes the Diagnostics repair and manual cache-refresh routes;
-8. creates, filters and edits a Team category through the real administration controller;
-9. creates, filters and edits a Team member, including category, store, city, working hours, contact data and SEO URL;
-10. verifies that a category owning a member cannot be deleted;
-11. deletes the member and then successfully deletes the empty category;
-12. rejects fatal PHP errors, uncaught exceptions and parse errors from the administration HTTP flow.
+It covers JavaScript-only behavior that cannot be proved by HTTP controller tests:
 
-This runtime layer also guards the OpenCart 3 custom-route permission behavior: `startup/permission` resolves `extension/probg_team/category` and `extension/probg_team/member` to the parent access route `extension/probg_team`, while the Team controllers retain their dedicated `modify` permissions for write operations.
+- authenticated OpenCart administration login;
+- OCMOD refresh and module installation;
+- Team sidebar/settings UI;
+- Summernote initialization and persistence;
+- category creation and non-default Layout selection;
+- real JavaScript add buttons for Members block and Team Menu instances;
+- Image Manager selection for main member image;
+- additional image-row creation and Image Manager selection;
+- persistence after reopening forms.
 
-The administration smoke test intentionally remains browserless. It validates HTTP/controller/model persistence and permissions, but it does not automate JavaScript-only UI interactions such as Image Manager dialogs, Summernote editing behavior, drag-and-drop interactions or visual Layout placement.
+The harness contains narrowly scoped compatibility handling for confirmed stock OpenCart 3.0.2.0/3.0.3.x JavaScript differences while still failing on unrelated browser errors.
 
-## What this proves
+## Responsive storefront and theme browser E2E
 
-A green compatibility, OCMOD-runtime and admin-runtime matrix provides automated evidence that:
+`.github/workflows/storefront-browser.yml` validates the Team storefront in Chromium on:
 
-- the current OCMOD integration points exist in the tested OpenCart releases;
-- the extension can be overlaid without replacing core files;
-- the Team install/upgrade/uninstall database lifecycle runs successfully against a real MariaDB server;
-- the actual OpenCart storefront can bootstrap and render the primary Team routes on the oldest and newest supported OpenCart 3 lines;
-- OpenCart can generate the Team modification cache through the real authenticated admin refresh route;
-- Team SEO, canonical, search, Google Sitemap and common-header metadata integrations execute successfully from that generated cache;
-- the module can be installed through the standard OpenCart module installer and can grant the administration permissions required by its custom routes;
-- settings, Diagnostics, module instances and category/member CRUD execute successfully through authenticated OpenCart administration HTTP routes;
-- source syntax and release packaging remain valid.
+- OpenCart 3.0.2.0 / default theme;
+- OpenCart 3.0.2.0 / synthetic custom theme;
+- OpenCart 3.0.3.9 / default theme;
+- OpenCart 3.0.3.9 / synthetic custom theme.
+
+Every matrix job checks desktop, tablet and mobile viewports.
+
+The browser scenario verifies:
+
+- Team landing/category/member pages;
+- Members block and Team Menu as real OpenCart Layout module instances;
+- category Layout inheritance on member profiles;
+- default-theme Team template fallback while a non-default theme is active;
+- OCMOD metadata injection into a custom theme header;
+- responsive member/gallery images;
+- Magnific Popup;
+- protection against page-level horizontal overflow from long URLs, unbroken text, `<pre>` and wide rich HTML;
+- local scrolling for intentionally wide rich content instead of widening the whole page.
+
+## Real Extensions Installer package E2E
+
+`.github/workflows/package-installer-e2e.yml` closes the gap between archive validation and a real OpenCart installation.
+
+The job builds exactly:
+
+```text
+probg-team-1.0.02.ocmod.zip
+```
+
+It then installs a clean OpenCart instance **without** overlaying ProBG Team source files and uploads the ZIP through OpenCart's real `marketplace/installer/upload` route.
+
+`tests/runtime/package_installer_smoke.sh` verifies:
+
+1. the standard Extensions Installer accepts the `.ocmod.zip` filename;
+2. the real multi-step `marketplace/install` chain completes without an error;
+3. `extension_install` history contains the package filename;
+4. `extension_path` contains the files moved by OpenCart;
+5. the `probg_team` OCMOD row is linked to the same `extension_install_id`;
+6. the installed OCMOD version is `1.0.2`;
+7. every installed Team file matches the packaged source byte-for-byte;
+8. authenticated OCMOD refresh produces the expected Team modification cache;
+9. standard OpenCart module installation creates the Team schema and module registration;
+10. the Team settings page boots after package installation;
+11. a seeded Team landing/category/member storefront boots from the package-installed files;
+12. no fatal PHP error, uncaught exception or parse error occurs during the flow.
+
+This test runs on OpenCart 3.0.2.0 and 3.0.3.9 with PHP 7.4 and MariaDB 10.6.
+
+## What the automated suite proves
+
+A fully green suite provides automated evidence that:
+
+- the OCMOD insertion points remain compatible with supported OpenCart 3 versions;
+- the source and canonical package are syntactically and structurally valid;
+- package generation is reproducible;
+- the module database lifecycle works against a real MariaDB server;
+- real OpenCart admin permissions, settings and CRUD controllers work;
+- JavaScript-only admin controls work in real Chromium;
+- SEO, search, sitemap, canonical and metadata integrations work from generated OCMOD cache;
+- Team Layout modules and category Layout inheritance work on the storefront;
+- responsive Team rendering does not introduce page-level horizontal overflow in the tested viewports;
+- default-theme fallback works while a non-default theme is active;
+- the canonical `.ocmod.zip` is accepted and installed by the real OpenCart Extensions Installer on the supported edge versions.
 
 ## What this does not replace
 
-These tests are not a full browser end-to-end or visual-regression suite. They do not prove compatibility with every third-party theme or extension combination.
+Automated tests cannot prove compatibility with every hosting environment, third-party theme or modification combination.
 
-Before publishing a production release, manual target-store verification should still cover at least:
+Before a production deployment to a specific store, targeted verification may still be appropriate for:
 
-- Extensions Installer upload behavior in the target hosting environment;
-- Image Manager selection and additional-image management;
-- Summernote editing behavior;
-- category Layout inheritance and visual Team module-instance placement;
-- active custom-theme overrides and responsive presentation;
-- conflicts with third-party modifications touching the same core insertion points.
+- hosting-specific upload limits, filesystem ownership/permissions and security rules;
+- heavily customized themes that replace standard OpenCart Twig structures rather than using normal fallback behavior;
+- third-party OCMOD/VQMod extensions that modify the same core insertion points;
+- store-specific SEO rewrites, caching layers, CDN/proxy behavior and custom admin security middleware.
 
-Custom themes that replace standard OpenCart Twig insertion points may require theme-specific OCMOD or template integration even when the core compatibility matrix is green.
+Custom themes or extensions that replace standard OpenCart insertion points may require theme- or extension-specific integration even when the core compatibility matrix is fully green.
