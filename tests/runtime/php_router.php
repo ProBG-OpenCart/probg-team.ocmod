@@ -7,4 +7,5 @@ if ($path !== '/' && is_file($target)) {
     return false;
 }
 
+chdir($document_root);
 require $document_root . '/index.php';
