@@ -4,6 +4,7 @@ const { chromium } = require('playwright');
 
 const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:8080';
 const ARTIFACT_DIR = process.env.ARTIFACT_DIR || '/tmp/probg-team-browser-e2e';
+const OPENCART_VERSION = process.env.OPENCART_VERSION || '';
 const CATEGORY_NAME = 'Browser E2E Category';
 const MEMBER_NAME = 'Browser E2E Member';
 const BLOCK_NAME = 'Browser E2E Members';
@@ -60,6 +61,10 @@ async function setSummernote(page, textarea, html) {
 async function chooseFixtureImage(page, thumbSelector, inputSelector) {
   await page.locator(thumbSelector).click();
   await page.locator('#button-image').waitFor({ state: 'visible' });
+
+  // OpenCart 3.0.3.x binds the popover image-button handler after a 250 ms
+  // timeout in admin/view/javascript/common.js. Wait for that stock handler.
+  await page.waitForTimeout(350);
   await page.locator('#button-image').click();
   await page.locator('#modal-image #filemanager').waitFor({ state: 'visible' });
 
@@ -92,8 +97,17 @@ async function fillFirstLanguageInput(page, prefix, suffix, value) {
   const page = await context.newPage();
   const browserErrors = [];
   const browserWarnings = [];
+  let stockEnglishSummernote404s = 0;
 
   page.on('pageerror', (error) => browserErrors.push(`pageerror: ${error.message}`));
+  page.on('response', (response) => {
+    if (
+      response.status() === 404 &&
+      new URL(response.url()).pathname.endsWith('/admin/view/javascript/summernote/lang/summernote-en-gb.js')
+    ) {
+      stockEnglishSummernote404s++;
+    }
+  });
   page.on('console', (message) => {
     if (message.type() === 'error') {
       browserWarnings.push(`console: ${message.text()}`);
@@ -218,14 +232,32 @@ async function fillFirstLanguageInput(page, prefix, suffix, value) {
     await page.locator('a[href="#tab-data"]').click();
     assert((await page.locator('select[name="team_category_id"] option:checked').textContent()).trim() === CATEGORY_NAME, 'Member category selection was not persisted');
 
-    if (browserErrors.length) {
-      throw new Error(`Uncaught browser errors detected:\n${browserErrors.join('\n')}`);
+    let remainingStockEnglishErrors = stockEnglishSummernote404s;
+    const unexpectedBrowserErrors = browserErrors.filter((entry) => {
+      if (
+        OPENCART_VERSION === '3.0.2.0' &&
+        entry === "pageerror: Unexpected token '<'" &&
+        remainingStockEnglishErrors > 0
+      ) {
+        remainingStockEnglishErrors--;
+        return false;
+      }
+
+      return true;
+    });
+
+    if (unexpectedBrowserErrors.length) {
+      throw new Error(`Uncaught browser errors detected:\n${unexpectedBrowserErrors.join('\n')}`);
+    }
+
+    if (browserErrors.length && !unexpectedBrowserErrors.length) {
+      console.warn(`Ignored ${browserErrors.length} OpenCart 3.0.2.0 core Summernote parser errors matched to ${stockEnglishSummernote404s} missing stock en-gb language requests.`);
     }
 
     if (browserWarnings.length) {
       console.warn(`Browser console warnings:\n${browserWarnings.join('\n')}`);
     }
-    console.log('Browser E2E OK: Summernote, Image Manager, category Layout and typed module-instance UI flows');
+    console.log(`Browser E2E OK on OpenCart ${OPENCART_VERSION || 'unknown'}: Summernote, Image Manager, category Layout and typed module-instance UI flows`);
   } catch (error) {
     await page.screenshot({ path: path.join(ARTIFACT_DIR, 'failure.png'), fullPage: true }).catch(() => {});
     fs.writeFileSync(path.join(ARTIFACT_DIR, 'failure.html'), await page.content().catch(() => ''), 'utf8');
