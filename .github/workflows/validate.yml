@@ -27,6 +27,39 @@ jobs:
       - name: Validate source and committed dist
         run: bash tools/validate.sh
 
+  compatibility:
+    name: OpenCart ${{ matrix.opencart }} compatibility
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        opencart: ['3.0.2.0', '3.0.3.8', '3.0.3.9']
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download clean OpenCart source
+        id: opencart
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ matrix.opencart }}"
+          ARCHIVE="/tmp/opencart-${VERSION}.tar.gz"
+          EXTRACT="/tmp/opencart-${VERSION}"
+          curl -fL --retry 4 --retry-all-errors \
+            "https://github.com/opencart/opencart/archive/refs/tags/${VERSION}.tar.gz" \
+            -o "$ARCHIVE"
+          mkdir -p "$EXTRACT"
+          tar -xzf "$ARCHIVE" -C "$EXTRACT"
+          ROOT="$(find "$EXTRACT" -mindepth 2 -maxdepth 2 -type d -name upload -print -quit)"
+          test -n "$ROOT"
+          test -f "$ROOT/index.php"
+          test -f "$ROOT/admin/index.php"
+          echo "root=$ROOT" >> "$GITHUB_OUTPUT"
+      - name: Validate OCMOD anchors and package overlay
+        run: |
+          python3 tools/check-opencart-compatibility.py \
+            --opencart-root "${{ steps.opencart.outputs.root }}" \
+            --version "${{ matrix.opencart }}"
+
   package:
     name: Reproducible package
     runs-on: ubuntu-latest
