@@ -30,12 +30,32 @@ jobs:
   compatibility:
     name: OpenCart ${{ matrix.opencart }} compatibility
     runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:10.6
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_ROOT_HOST: '%'
+          MARIADB_DATABASE: opencart
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mariadb-admin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
     strategy:
       fail-fast: false
       matrix:
-        opencart: ['3.0.2.0', '3.0.3.8', '3.0.3.9']
+        opencart: ['3.0.2.0', '3.0.3.7', '3.0.3.8', '3.0.3.9']
     steps:
       - uses: actions/checkout@v4
+      - name: Setup PHP runtime
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mysqli
+          coverage: none
       - name: Download clean OpenCart source
         id: opencart
         shell: bash
@@ -59,6 +79,14 @@ jobs:
           python3 tools/check-opencart-compatibility.py \
             --opencart-root "${{ steps.opencart.outputs.root }}" \
             --version "${{ matrix.opencart }}"
+      - name: Run install, upgrade and uninstall database smoke test
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="${{ steps.opencart.outputs.root }}"
+          cp -a upload/. "$ROOT/"
+          php tests/runtime/install_model_smoke.php \
+            "$ROOT" 127.0.0.1 root root opencart 3306
 
   package:
     name: Reproducible package
