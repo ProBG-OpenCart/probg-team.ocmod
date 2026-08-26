@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+### fix — Български
+
+- Подсилено е responsive поведението на Team storefront при дълги URL адреси, непрекъсваем текст, `<pre>` съдържание и широк HTML, така че те да не създават хоризонтален scroll на цялата страница.
+- Широкото rich HTML съдържание остава достъпно чрез локален horizontal scroll в Team content контейнера, без автоматично изрязване на административно въведения HTML.
+- Добавена е реална Chromium storefront валидация за OpenCart 3.0.2.0 и 3.0.3.9 с default и custom theme, desktop/tablet/mobile viewport-и, Layout modules, theme fallback, Open Graph и Magnific Popup.
+
+### fix — English
+
+- Hardened the Team storefront responsiveness for long URLs, unbroken text, `<pre>` content and wide HTML so they cannot create page-level horizontal scrolling.
+- Wide rich HTML remains accessible through local horizontal scrolling inside the Team content container without silently truncating administrator-authored HTML.
+- Added real Chromium storefront validation on OpenCart 3.0.2.0 and 3.0.3.9 with default and custom themes, desktop/tablet/mobile viewports, Layout modules, theme fallback, Open Graph and Magnific Popup.
+
 ## 1.0.2 — 2026-08-26
 
 ### fix — Български
@@ -51,7 +65,7 @@
 ### feat — English
 
 - Aligned ProBG Team with the current ProBG Blog 1.4.x architecture where that architecture is appropriate for a Team directory.
-- Member blocks and menus are now stored as standard OpenCart module instances under the single `probg_team` code, using an internal `members` or `menu` type.
+- Member blocks and menus are now stored as standard OpenCart module instances under the single `probg_team` code, using an internal type `members` or `menu`.
 - Added automatic migration from legacy `probg_team_members.<module_id>` and `probg_team_menu.<module_id>` records to `probg_team.<module_id>` while preserving module IDs and Layout assignments.
 - Global settings, member blocks and menus are managed from one ProBG Team administration page.
 - Added `team_category_to_layout` and per-store Layout selection for Team categories.
