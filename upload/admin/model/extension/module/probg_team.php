@@ -2,7 +2,7 @@
 require_once(DIR_SYSTEM . 'library/probg_team/slug.php');
 
 class ModelExtensionModuleProbgTeam extends Model {
-    const VERSION = '1.0.1';
+    const VERSION = '1.0.2';
     const SCHEMA_VERSION = '1.0.0';
 
     private $schema_tables = array(

@@ -1,6 +1,6 @@
 # ProBG Team for OpenCart 3
 
-Version: 1.0.1
+Version: 1.0.2
 
 Multilingual OpenCart 3 extension for a team section, team categories, team-member profiles, configurable card blocks and compact Team menus for Layout positions.
 
@@ -8,7 +8,7 @@ Multilingual OpenCart 3 extension for a team section, team categories, team-memb
 
 Designed for OpenCart 3.0.2.x and 3.0.3.x. The package does not replace core files. SEO, search, sitemap, administration-menu and metadata integrations are applied through OCMOD.
 
-Version 1.0.1 stabilizes the Blog-aligned architecture for production use. It adds guarded Layout-instance rendering, safe storefront image-path validation, and a Magnific Popup lightbox for the member profile image and gallery while preserving the unified `probg_team` module instances, multi-store Layout inheritance, SEO, sitemap and cache behavior.
+Version 1.0.2 stabilizes the Blog-aligned architecture for production use. It adds guarded Layout-instance rendering, safe storefront image-path validation, and a Magnific Popup lightbox for the member profile image and gallery while preserving the unified `probg_team` module instances, multi-store Layout inheritance, SEO, sitemap and cache behavior.
 
 ## Main features
 
@@ -164,7 +164,7 @@ It does not delete category or member content and does not automatically delete 
 
 ## Installation
 
-1. Upload `dist/probg-team-1.0.01.ocmod.zip` through **Extensions > Installer**.
+1. Upload `dist/probg-team-1.0.02.ocmod.zip` through **Extensions > Installer**.
 2. Refresh modifications through **Extensions > Modifications**.
 3. Install **ProBG Team** through **Extensions > Extensions > Modules**. This is the global Team settings entry.
 4. Open **ProBG Team** and create the required **Member blocks** and **Menus**. They are saved as typed standard OpenCart module instances and then assigned through **Design > Layouts**.
@@ -187,15 +187,15 @@ It does not delete category or member content and does not automatically delete 
 Do not uninstall the previous version before upgrading; uninstall intentionally removes Team content.
 
 
-## Upgrade to v1.0.1
+## Upgrade to v1.0.2
 
-1. Upload `dist/probg-team-1.0.01.ocmod.zip` without uninstalling the current module.
+1. Upload `dist/probg-team-1.0.02.ocmod.zip` without uninstalling the current module.
 2. Refresh **Extensions > Modifications**.
 3. Open **Team > Settings** once so the internal module version is refreshed.
 4. Clear the Team cache from the settings page.
 5. Verify one Team category, one member profile and every Layout instance used by the active theme.
 
-No database schema change is required for v1.0.1. Existing categories, members, SEO URLs, store assignments, Layout assignments and module instance IDs are preserved.
+No database schema change is required for v1.0.2. Existing categories, members, SEO URLs, store assignments, Layout assignments and module instance IDs are preserved.
 
 ## Support the project
 
