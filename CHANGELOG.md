@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+### fix — Български
+
+- Поправени са административните permissions за custom Team routes в OpenCart 3 чрез добавяне на parent route `extension/probg_team`, който реално се проверява от `startup/permission` за маршрутите `extension/probg_team/*`.
+- Team access/modify permissions вече се merge-ват атомарно в `user_group.permission`, без дублиращи записи при повторно инсталиране, repair или отваряне на настройките.
+- Добавен е реален admin runtime CI тест за OpenCart 3.0.2.0 и 3.0.3.9, който покрива инсталиране, permissions, настройки, Diagnostics, module instances и пълен category/member CRUD lifecycle.
+
+### fix — English
+
+- Fixed OpenCart 3 administration permissions for custom Team routes by granting the `extension/probg_team` parent route actually checked by `startup/permission` for `extension/probg_team/*` routes.
+- Team access/modify permissions are now merged atomically into `user_group.permission`, avoiding duplicate entries across repeated install, repair or settings access.
+- Added a real admin runtime CI test for OpenCart 3.0.2.0 and 3.0.3.9 covering installation, permissions, settings, Diagnostics, module instances and the complete category/member CRUD lifecycle.
+
 ## 1.0.1 — 2026-08-25
 
 ### fix — Български
