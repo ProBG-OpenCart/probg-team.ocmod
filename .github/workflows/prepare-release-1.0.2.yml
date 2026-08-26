@@ -1,0 +1,92 @@
+name: Prepare ProBG Team 1.0.2
+
+on:
+  push:
+    branches:
+      - release/1.0.2
+    paths:
+      - .github/workflows/prepare-release-1.0.2.yml
+
+permissions:
+  contents: write
+
+jobs:
+  prepare-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout release branch
+        uses: actions/checkout@v4
+        with:
+          ref: release/1.0.2
+          fetch-depth: 0
+
+      - name: Setup PHP 7.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          extensions: mysqli,gd,curl,zip,dom
+          coverage: none
+
+      - name: Prepare release metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          install = Path('install.xml')
+          text = install.read_text(encoding='utf-8')
+          text, count = re.subn(r'<version>1\.0\.1</version>', '<version>1.0.2</version>', text, count=1)
+          if count != 1:
+              raise SystemExit('install.xml version marker was not found exactly once')
+          install.write_text(text, encoding='utf-8')
+
+          versioned = [
+              Path('upload/admin/controller/extension/module/probg_team.php'),
+              Path('upload/admin/model/extension/module/probg_team.php'),
+          ]
+          for path in versioned:
+              text = path.read_text(encoding='utf-8')
+              text, count = re.subn(r"const VERSION = '1\.0\.1';", "const VERSION = '1.0.2';", text, count=1)
+              if count != 1:
+                  raise SystemExit(f'Version marker missing in {path}')
+              path.write_text(text, encoding='utf-8')
+
+          changelog = Path('CHANGELOG.md')
+          text = changelog.read_text(encoding='utf-8')
+          marker = '## Unreleased'
+          if text.count(marker) != 1:
+              raise SystemExit('Expected exactly one Unreleased changelog section')
+          text = text.replace(marker, '## 1.0.2 — 2026-08-26', 1)
+          changelog.write_text(text, encoding='utf-8')
+
+          readme = Path('README.md')
+          text = readme.read_text(encoding='utf-8')
+          text = text.replace('1.0.01', '1.0.02')
+          text = text.replace('1.0.1', '1.0.2')
+          readme.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Build deterministic installation package
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x tools/build-dist.sh tools/validate.sh
+          tools/build-dist.sh 1.0.02
+          test -f dist/probg-team-1.0.02.ocmod.zip
+          test -f dist/SHA256SUMS
+          unzip -t dist/probg-team-1.0.02.ocmod.zip >/dev/null
+          grep -Fq 'probg-team-1.0.02.ocmod.zip' dist/SHA256SUMS
+
+      - name: Remove one-shot workflow and commit release candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/prepare-release-1.0.2.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --check
+          git commit -m 'chore: prepare ProBG Team 1.0.2 release candidate'
+          git push origin HEAD:release/1.0.2
