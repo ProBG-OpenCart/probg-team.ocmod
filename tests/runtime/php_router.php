@@ -7,5 +7,11 @@ if ($path !== '/' && is_file($target)) {
     return false;
 }
 
+$route = ltrim(rawurldecode((string)$path), '/');
+if ($route !== '') {
+    $_GET['_route_'] = $route;
+    $_REQUEST['_route_'] = $route;
+}
+
 chdir($document_root);
 require $document_root . '/index.php';
