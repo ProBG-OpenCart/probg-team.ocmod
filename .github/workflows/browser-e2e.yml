@@ -1,0 +1,130 @@
+name: Browser E2E
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  browser-e2e:
+    name: OpenCart ${{ matrix.opencart }} Team browser UI
+    runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:10.6
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_ROOT_HOST: '%'
+          MARIADB_DATABASE: opencart
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mariadb-admin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    strategy:
+      fail-fast: false
+      matrix:
+        opencart: ['3.0.2.0', '3.0.3.9']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 7.4 runtime
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          extensions: mysqli,gd,curl,zip,dom
+          coverage: none
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Download and install clean OpenCart
+        id: opencart
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ matrix.opencart }}"
+          ARCHIVE="/tmp/opencart-browser-${VERSION}.tar.gz"
+          EXTRACT="/tmp/opencart-browser-${VERSION}"
+          curl -fL --retry 4 --retry-all-errors \
+            "https://github.com/opencart/opencart/archive/refs/tags/${VERSION}.tar.gz" \
+            -o "$ARCHIVE"
+          mkdir -p "$EXTRACT"
+          tar -xzf "$ARCHIVE" -C "$EXTRACT"
+          ROOT="$(find "$EXTRACT" -mindepth 2 -maxdepth 2 -type d -name upload -print -quit)"
+          test -n "$ROOT"
+          cp -a upload/. "$ROOT/"
+          touch "$ROOT/config.php" "$ROOT/admin/config.php"
+          php "$ROOT/install/cli_install.php" install \
+            --db_hostname 127.0.0.1 \
+            --db_username root \
+            --db_password root \
+            --db_database opencart \
+            --db_driver mysqli \
+            --db_port 3306 \
+            --db_prefix oc_ \
+            --username admin \
+            --password admin \
+            --email browser-e2e@example.com \
+            --http_server http://127.0.0.1:8080/
+          rm -rf "$ROOT/install"
+
+          mkdir -p "$ROOT/image/catalog"
+          printf '%s' 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=' | base64 --decode > "$ROOT/image/catalog/browser-e2e.png"
+
+          php tests/runtime/register_ocmod.php \
+            127.0.0.1 root root opencart 3306 install.xml
+          echo "root=$ROOT" >> "$GITHUB_OUTPUT"
+
+      - name: Install Playwright Chromium
+        shell: bash
+        run: |
+          npm install --no-save --package-lock=false playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Exercise real Team browser UI
+        shell: bash
+        env:
+          BASE_URL: http://127.0.0.1:8080
+          ARTIFACT_DIR: /tmp/probg-team-browser-e2e
+        run: |
+          set -euo pipefail
+          ROOT="${{ steps.opencart.outputs.root }}"
+          LOG="/tmp/probg-team-browser-e2e-server.log"
+          php -S 127.0.0.1:8080 -t "$ROOT" tests/runtime/php_router.php >"$LOG" 2>&1 &
+          SERVER_PID=$!
+          cleanup() {
+            kill "$SERVER_PID" >/dev/null 2>&1 || true
+            wait "$SERVER_PID" 2>/dev/null || true
+          }
+          trap cleanup EXIT
+
+          for _ in $(seq 1 40); do
+            if curl -fsS "http://127.0.0.1:8080/index.php?route=common/home" >/dev/null 2>&1; then
+              break
+            fi
+            sleep 0.5
+          done
+
+          node tests/browser/admin-ui-e2e.js
+
+          if grep -Eqi 'PHP Fatal error|Uncaught (Exception|Error)|Parse error' "$LOG"; then
+            cat "$LOG"
+            exit 1
+          fi
+
+      - name: Upload browser failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-e2e-${{ matrix.opencart }}
+          path: /tmp/probg-team-browser-e2e
+          if-no-files-found: ignore
