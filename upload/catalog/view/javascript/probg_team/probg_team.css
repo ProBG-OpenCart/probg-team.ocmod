@@ -4,10 +4,12 @@
 }
 .probg-team-grid > [class*="col-"] {
   display: flex;
+  min-width: 0;
 }
 .probg-team-card,
 .probg-team-category-card {
   width: 100%;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   margin-bottom: 30px;
@@ -18,14 +20,26 @@
 .probg-team-card .caption,
 .probg-team-category-card .panel-body {
   flex: 1 1 auto;
+  min-width: 0;
 }
 .probg-team-member-image img,
 .probg-team-card .image img,
 .probg-team-gallery img {
+  max-width: 100%;
+  height: auto;
   object-fit: cover;
 }
 .probg-team-contact-list > li {
   margin-bottom: 8px;
+}
+.probg-team-contact-list a,
+.probg-team-menu .list-group-item,
+.probg-team-description,
+.probg-team-category-description,
+.probg-team-member-short,
+.probg-team-member-description {
+  overflow-wrap: anywhere;
+  word-wrap: break-word;
 }
 .probg-team-working-hours {
   white-space: normal;
@@ -36,6 +50,29 @@
 }
 .probg-team-gallery .thumbnail {
   margin-bottom: 20px;
+}
+.probg-team-description,
+.probg-team-category-description,
+.probg-team-member-short,
+.probg-team-member-description {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.probg-team-description img,
+.probg-team-category-description img,
+.probg-team-member-short img,
+.probg-team-member-description img {
+  max-width: 100%;
+  height: auto;
+}
+.probg-team-description pre,
+.probg-team-category-description pre,
+.probg-team-member-short pre,
+.probg-team-member-description pre {
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 .probg-team-description,
 .probg-team-category-description,
@@ -50,6 +87,7 @@
 
 .probg-team-menu .list-group-item {
   line-height: 1.35;
+  white-space: normal;
 }
 
 .probg-team-menu .probg-team-menu-name,
