@@ -76,6 +76,7 @@ jobs:
             --password admin \
             --email ocmod@example.com \
             --http_server http://127.0.0.1:8080/
+          rm -rf "$ROOT/install"
           php tests/runtime/prepare_http_fixture.php \
             "$ROOT" 127.0.0.1 root root opencart 3306 http://127.0.0.1:8080/ \
             | tee /tmp/probg-team-ocmod-fixture.env
