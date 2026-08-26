@@ -8,7 +8,7 @@ Multilingual OpenCart 3 extension for a team section, team categories, team-memb
 
 Designed for OpenCart 3.0.2.x and 3.0.3.x. The package does not replace core files. SEO, search, sitemap, administration-menu and metadata integrations are applied through OCMOD.
 
-Version 1.0.2 stabilizes the Blog-aligned architecture for production use. It adds guarded Layout-instance rendering, safe storefront image-path validation, and a Magnific Popup lightbox for the member profile image and gallery while preserving the unified `probg_team` module instances, multi-store Layout inheritance, SEO, sitemap and cache behavior.
+Version 1.0.2 fixes OpenCart 3 administration permission handling for the custom `extension/probg_team/*` routes by granting the parent `extension/probg_team` access scope and atomically merging Team access/modify permissions into the active user group. It also carries forward the production hardening from 1.0.1, including guarded Layout-instance rendering, safe storefront image-path validation and the built-in Magnific Popup member-gallery lightbox. The database schema remains unchanged at 1.0.0.
 
 ## Main features
 
@@ -31,6 +31,7 @@ Version 1.0.2 stabilizes the Blog-aligned architecture for production use. It ad
 - Manual cache refresh button in the global settings.
 - Diagnostics tab with database, OCMOD, store-relation and SEO checks.
 - Safe **Check and repair** action for idempotent schema and relation repair.
+- Automatic OpenCart 3 access/modify permission registration for the Team settings and custom administration routes.
 
 ### Multi-store support
 
@@ -168,7 +169,7 @@ It does not delete category or member content and does not automatically delete 
 2. Refresh modifications through **Extensions > Modifications**.
 3. Install **ProBG Team** through **Extensions > Extensions > Modules**. This is the global Team settings entry.
 4. Open **ProBG Team** and create the required **Member blocks** and **Menus**. They are saved as typed standard OpenCart module instances and then assigned through **Design > Layouts**.
-5. Grant access and modify permissions if required.
+5. ProBG Team automatically grants the required Team routes to the user group that installs/opens the module; review the group manually only if the store uses a custom permission policy.
 6. Open **Team > Settings** and configure the default store and active languages.
 7. Open **Diagnostics** and verify that all checks are successful.
 8. Add categories and members.
@@ -186,14 +187,13 @@ It does not delete category or member content and does not automatically delete 
 
 Do not uninstall the previous version before upgrading; uninstall intentionally removes Team content.
 
-
 ## Upgrade to v1.0.2
 
 1. Upload `dist/probg-team-1.0.02.ocmod.zip` without uninstalling the current module.
 2. Refresh **Extensions > Modifications**.
-3. Open **Team > Settings** once so the internal module version is refreshed.
+3. Open **Team > Settings** once. This refreshes the internal module version and repairs the Team administration permission scope for the active user group.
 4. Clear the Team cache from the settings page.
-5. Verify one Team category, one member profile and every Layout instance used by the active theme.
+5. Verify that **Team > Categories** and **Team > Members** open without a permission error, then verify one Team category, one member profile and every Layout instance used by the active theme.
 
 No database schema change is required for v1.0.2. Existing categories, members, SEO URLs, store assignments, Layout assignments and module instance IDs are preserved.
 
